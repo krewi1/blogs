@@ -1,14 +1,14 @@
 #Zdar
 
-Vítejte na mém veřejném pískovišti. Mám v plánu brát tenhle prostor jako hřiště, na kterém se chystám pitvat bobril . Případně budu porovnávat mé stávající znalosti z projektů v reactu s možnostmi v bobrilu.
+Vítejte na mém veřejném pískovišti. Mám v plánu brát tenhle prostor jako hřiště, na kterém se chystám pitvat bobril. Případně budu porovnávat mé stávající znalosti z projektů v reactu s možnostmi v bobrilu. Všechny ukázky kodu k dostání v github repu: https://github.com/krewi1/bobril-examples
 
 V tomhle prvním výlevu nejřív uvedu bobril a pak bych se rád podíval na zoubek základním stavebním jednotkám bobrilí aplikace tedy struktuře označené v d.ts jako IBobrilNode dále psané prostě jako bobril node.
 Teď tedy něco málo o bobrilu: framework jako takový je dílem Borise Letochy a byl vyvíjen pro potřeby 
-firmy Quadient. Je to framework pracující s virtuálním domem, jehož základním stavebním jsou komponenty, z kterých se následně staví celá aplikace. Ještě před aplikací se tedy postaví virtuální DOM a blah blah blah. To už všichni známe.
+firmy Quadient. Framework si klade za cíl odprostiť uživatele od přímého konraktu s DOM vrstvou, tak že nad ní staví abstrakci. Zároveň za uživatele řeší problém typu: nic se nezměnilo, tedy nic nepřekresluji. Uživatel o aplikaci pak může přemýšlet přímočařeji a do napsaného kodu nezanášet logiku týkající se detekce změn, která by ostatní programátory opravující po něm jeho chyby mohla zbytečně rozptylovat. Tato detekce změn se nazývá "reconciliation" a možná se jí ještě pověnujem nekdy příště.
 
-Disclaimer: A ještě poslední věc před skutečným začátkem. To co zde budu prezentovat jsou osobní popisy/mentální modely. Budu se snažit co možná nejvěrněji opisovat realitu. Ale realita je složitá mrcha tak berte v podtaz určitý stupeň vágnosti . Dále pak v případě nalezení nesrovnalostí/jiného názoru jsem otevřen debatě.
+Disclaimer: A ještě poslední věc před skutečným začátkem. To co zde budu prezentovat jsou osobní popisy/mentální modely. Budu se snažit co možná nejvěrněji opisovat realitu. Ale realita je složitá mrcha, tak berte v podtaz určitý stupeň vágnosti . Dále pak v případě nalezení nesrovnalostí/jiného názoru jsem otevřen debatě.
 
-###Toť k povině nepovinému úvodu a teď už s chutí do vyvíjení nějakých těch hodnot.
+###Toť k povinně nepovinému úvodu a teď už s chutí do vyvíjení nějakých těch hodnot.
 Bobril node - jednotka v bobril struktuře
 bobril node není nic jiného než abstrakce nad konkrétním prvkem, který bude vykreslován v jeho nativním prosředí. V případě běhu na webu vytváříme za pomoci bobril nodů DOM elementy. Jak tedy tato abstrakce vypadá v podání bobrilu?:
 ```javascript 1.8
@@ -19,14 +19,14 @@ Takto definovaná komponenta vytvoří div element a jeho obsah "Hello world". T
     const div = document.createElement("div");
     div.textContent = "Hello world"
 ```
-Co se stane když bobril nodu nespecifikujeme tag propertu.? Bobril vynechá vytvoření elementu a přidává pouze obsah, tedy v případě textového children obsahu vykreslí textContent. V případě bobril nodů jako children obsahu je jejich DOM reprezentace na rozdíl od bobril node stromové struktury nezanořená. Výhoda se nenachází ale pouze jen v odproštění od DOM implementace, ale i v tom co s bobril nodem bude pod pokličkou dělat Bobril. Konkrétně v případě datových změn uvnitř komponenty porovnávat stav nodu před a po změně a na základě porovnání, bobril změní příslušné property DOM elementu. Případně ho úplně nahradí/odebere. Této fázi říkáme "reconciliation" a o ní možná někdy příště.
+Co se stane když bobril nodu nespecifikujeme tag propertu.? Bobril vynechá vytvoření elementu a přidává pouze obsah, tedy v případě textového children přidává pouze textový obsah. V případě, že v property children předáváme bobril nodu další bobril nody, je jejich DOM reprezentace na rozdíl od bobril node stromové struktury nezanořená.
 
-Teď už ale k nečemu zábavnějšímu a to ke komponentám. Komponenta je specifický typ bobril nodu, který má naplněnou svou propertu component objektem s patřičným interfacem a z obyčejného bobril nodu se tímto stane chytřejší bobril node. Chytřejší znamená, že může plnohodnotně využívat prostředí ve kterém se nachází. Tedy odchytávat eventy, řešit po svém svém svůj životní cyklus, renderovat dynamická data, která přijdou z rodiče v komponentové struktuře a hlavně udržovat svůj vniřní stav a vyvolávat překreslení své a svých potomků. Chceme-li udělat z obyčejného nodu ten chytrý je postup poměrně přímočarý. Pro bobril node pouze dodefinujeme jeho komponentovou reprezentaci. Co se DOM interpretace týče je definice nody s komponentou ekvivalentní s nodou bez komponenty.
+Teď už ale k nečemu zábavnějšímu a to ke komponentám. Komponenta je specifický typ bobril nodu, který má naplněnou svou propertu component objektem s patřičným interfacem (IBobrilComponent). Tím se z obyčejného bobril nodu stane chytřejší bobril node. Chytřejší znamená, že může plnohodnotně využívat prostředí ve kterém se nachází. Tedy odchytávat eventy, řešit po svém svém svůj životní cyklus, renderovat dynamická data, která přijdou z rodiče v komponentové struktuře a hlavně udržovat svůj vniřní stav a vyvolávat překreslení své a svých potomků. Chceme-li udělat z obyčejného nodu ten chytrý je postup poměrně přímočarý. Pro bobril node pouze dodefinujeme jeho komponentovou reprezentaci. Co se DOM interpretace týče je definice nody s komponentou ekvivalentní s nodou bez komponenty.
 Tedy čistě z hlediska DOM equal platí:
 ```
      {tag: "div", children: "hello world"} === {component: {render: function (ctx) { ctx.me.children = "hello world"; ctx.me.tag = "div"}}}
 ```
-V oblasti komponent se v bobrilu budeme často setkávat s pojmem kontext alias context alias ctx. Bylo by tedy dobré si nejdříve říct jak ho vlastně chápat a k čemu nám poslouží. Z lingvistického rozboru slova se dozvíme, že kontext je okolí jednotky, které je pro ni relevantní. Uhh dobře.. kontext v informatice: minimální množství informací, které proces musí uložit, než dojde ke změně kontextu. Hmmmm. Nicméně z těchto definic můžeme vyjít a říct, že kontext se bezprosředně týká nějaké sledované jednotky, v našem případě tedy komponenty, respektive bobril nodu. A dále si pojmě říci, že bobril node je dodefinováván na základě dat která jsou uchovávána právě v kontextu. Já přemýšlím o context jako mutable přepravce, která je dostupná v každém dílčím render cyklu.
+V oblasti komponent se v bobrilu budeme často setkávat s pojmem kontext alias context alias ctx. Bylo by tedy dobré si nejdříve říci, jak ho vlastně chápat a k čemu nám poslouží. Z lingvistického rozboru slova se dozvíme, že kontext je okolí jednotky, které je pro ni relevantní. Uhh dobře.. kontext v informatice: minimální množství informací, které proces musí uložit, než dojde ke změně kontextu. Hmmmm. Nicméně z těchto definic můžeme vyjít a říct, že kontext se bezprosředně týká nějaké sledované jednotky, v našem případě tedy komponenty, respektive bobril nodu. Já přemýšlím o context jako mutable přepravce, která je dostupná v každém dílčím render cyklu a na základě těchto dato dodefinováváme bobril node. 
 Dost tlachání a hurá zpátky k psaní, konkrétně bobril node reprezentovaný komponentou.
 ```typescript
  const BobrilComponentNaive: b.IBobrilNode = {
