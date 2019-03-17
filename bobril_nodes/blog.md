@@ -182,12 +182,12 @@ Pamatuje zmínku o kompletně rozdílném pohdledu bobrilu na render komponent a
         }
     
         render(data: {}): b.IBobrilChildren {
-             return [
-               {tag: "h1", children: "Counter"},
-               {tag: "div", children: this.count},
-               {component: Button({title: "+", callback: () => this.increment()})},
-               {component: Button({title: "-", callback: () => this.decrement()})},
-           ]
+            return [
+                {tag: "h1", children: "Counter"},
+                {tag: "div", children: this.count},
+                Button({title: "+", callback: () => this.increment()}),
+                Button({title: "-", callback: () => this.decrement()}),
+            ]
         }
     }
 
