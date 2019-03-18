@@ -1,6 +1,6 @@
 #Zdar
 
-Vítejte na mém veřejném pískovišti. Mám v plánu brát tenhle prostor jako hřiště, na kterém se chystám pitvat bobril. Případně budu porovnávat mé stávající znalosti z projektů v reactu s možnostmi v bobrilu. Všechny ukázky kodu k dostání v github repu: https://github.com/krewi1/bobril-examples
+Vítejte na mém veřejném pískovišti. Mám v plánu brát tenhle prostor jako místo, na kterém se podívám na základy, porovnám možnosti reactu s možnostmi v bobrilu a v neposlední řadě bych se tady chtěl věnovat tématům, na které narazím ať už v při práci nebo side projektech. Všechny ukázky kodu k dostání v github repu: https://github.com/krewi1/bobril-examples
 
 V tomhle prvním výlevu nejřív uvedu bobril a pak bych se rád podíval na zoubek základním stavebním jednotkám bobrilí aplikace tedy struktuře označené v d.ts jako IBobrilNode dále psané prostě jako bobril node.
 Teď tedy něco málo o bobrilu: framework jako takový je dílem Borise Letochy a byl vyvíjen pro potřeby 
@@ -9,24 +9,23 @@ firmy Quadient. Framework si klade za cíl odprostiť uživatele od přímého k
 Disclaimer: A ještě poslední věc před skutečným začátkem. To co zde budu prezentovat jsou osobní popisy/mentální modely. Budu se snažit co možná nejvěrněji opisovat realitu. Ale realita je složitá mrcha, tak berte v podtaz určitý stupeň vágnosti . Dále pak v případě nalezení nesrovnalostí/jiného názoru jsem otevřen debatě.
 
 ###Toť k povinně nepovinému úvodu a teď už s chutí do vyvíjení nějakých těch hodnot.
-Bobril node - jednotka v bobril struktuře
-bobril node není nic jiného než abstrakce nad konkrétním prvkem, který bude vykreslován v jeho nativním prosředí. V případě běhu na webu vytváříme za pomoci bobril nodů DOM elementy. Jak tedy tato abstrakce vypadá v podání bobrilu?:
+Bobril node - jednotka struktury vytvářené bobrilem. Node není nic jiného než abstrakce nad konkrétním prvkem, který bude vykreslován v jeho nativním prosředí. V případě běhu na webu vytváříme za pomoci bobril nodů DOM elementy. Jak tedy tato abstrakce vypadá v podání bobrilu?:
 ```javascript 1.8
  const node = {tag: "div", children: "Hello world"};
 ```
-Takto definovaná komponenta vytvoří div element a jeho obsah "Hello world". Tedy v imperativním světě volání přímo DOM api za nás tato deklarace dělá zhruba něco takovéhleho:
+Takto definovaný node vytvoří div element a jeho obsah "Hello world". Tedy v imperativním světě volání přímo DOM api za nás tato deklarace dělá zhruba něco takovéhleho:
 ```javascript 1.8
     const div = document.createElement("div");
     div.textContent = "Hello world"
 ```
-Co se stane když bobril nodu nespecifikujeme tag propertu.? Bobril vynechá vytvoření elementu a přidává pouze obsah, tedy v případě textového children přidává pouze textový obsah. V případě, že v property children předáváme bobril nodu další bobril nody, je jejich DOM reprezentace na rozdíl od bobril node stromové struktury nezanořená.
+Co se stane když bobril nodu nespecifikujeme tag propertu.? Bobril vynechá vytvoření elementu a přidává pouze obsah. V případě textového children přidává pouze textový obsah. V případě, že v property children předáváme bobril nodu další bobril nody, je jejich DOM reprezentace na rozdíl od struktury vytvářené bobrilem nezanořená.
 
 Teď už ale k nečemu zábavnějšímu a to ke komponentám. Komponenta je specifický typ bobril nodu, který má naplněnou svou propertu component objektem s patřičným interfacem (IBobrilComponent). Tím se z obyčejného bobril nodu stane chytřejší bobril node. Chytřejší znamená, že může plnohodnotně využívat prostředí ve kterém se nachází. Tedy odchytávat eventy, řešit po svém svém svůj životní cyklus, renderovat dynamická data, která přijdou z rodiče v komponentové struktuře a hlavně udržovat svůj vniřní stav a vyvolávat překreslení své a svých potomků. Chceme-li udělat z obyčejného nodu ten chytrý je postup poměrně přímočarý. Pro bobril node pouze dodefinujeme jeho komponentovou reprezentaci. Co se DOM interpretace týče je definice nody s komponentou ekvivalentní s nodou bez komponenty.
 Tedy čistě z hlediska DOM equal platí:
 ```
      {tag: "div", children: "hello world"} === {component: {render: function (ctx) { ctx.me.children = "hello world"; ctx.me.tag = "div"}}}
 ```
-V oblasti komponent se v bobrilu budeme často setkávat s pojmem kontext alias context alias ctx. Bylo by tedy dobré si nejdříve říci, jak ho vlastně chápat a k čemu nám poslouží. Z lingvistického rozboru slova se dozvíme, že kontext je okolí jednotky, které je pro ni relevantní. Uhh dobře.. kontext v informatice: minimální množství informací, které proces musí uložit, než dojde ke změně kontextu. Hmmmm. Nicméně z těchto definic můžeme vyjít a říct, že kontext se bezprosředně týká nějaké sledované jednotky, v našem případě tedy komponenty, respektive bobril nodu. Já přemýšlím o context jako mutable přepravce, která je dostupná v každém dílčím render cyklu a na základě těchto dato dodefinováváme bobril node. 
+V oblasti komponent se v bobrilu budeme často setkávat s pojmem kontext alias context alias ctx. Bylo by tedy dobré si nejdříve říci, jak ho vlastně chápat a k čemu nám poslouží. Z lingvistického rozboru slova se dozvíme, že kontext je okolí jednotky, které je pro ni relevantní. Uhh dobře.. kontext v informatice: minimální množství informací, které proces musí uložit, než dojde ke změně kontextu. Hmmmm. Nicméně z těchto definic můžeme vyjít a říct, že kontext se bezprosředně týká nějaké sledované jednotky, v našem případě tedy komponenty, respektive bobril nodu. Já přemýšlím o contextu jako mutable přepravce, která je dostupná v každém dílčím render cyklu a na základě těchto dat dodefinováváme bobril node. 
 Dost tlachání a hurá zpátky k psaní, konkrétně bobril node reprezentovaný komponentou.
 ```typescript
  const BobrilComponentNaive: b.IBobrilNode = {
@@ -39,14 +38,14 @@ Dost tlachání a hurá zpátky k psaní, konkrétně bobril node reprezentovan�
  };
 ```
 Zajímvaý je přístup bobrilu k render funkci oproti reactu. React render funkce v class pojetí komponenty nepříjíma žádné parametry, protože vše k renderu potřebné najdeme na this objektu, kterým je současně renderovaný node. Zatímco u bobrilu je this v render funkci rovno komponentě kterou je node reprezentován. Další diametrální odlišností je návratová hodnota, která je v případě reactu ReactNode a v případě bobrilu void. Void? Jak tedy říci bobrilu aby něco zobrazil. Odpověď se nachází právě ve vstupních parametrech funkce. Neboť to jsou mutable datové struktury. A jak se vidět na ukázce nahoře k zobrazení na obrazovku dochází pomocí zapsání do children property bobril nodu. Pure object definition hint:
-Pokud se rozhodnere upgradovat bobril node z jednoduchého na bobril node využívající komponentu, berte zřetel na ty mutable struktury viz.:
+Pokud se rozhodnete upgradovat bobril node z jednoduchého na bobril node využívající komponentu, berte zřetel na mutable struktury viz.:
 ```javascript 1.8
  const node = {
 	tag: "div",
 	children: "My children life will be ended in the first rendering cycle",
 	component: {
  	render: function(ctx, me){
- 		// hey bobril, fuck that firstly defined children, lets render this one instead.
+ 		// hey bobril, forget that firstly defined children, lets render this one instead.
  		me.children = `Hello world`;
  	}
   }
@@ -193,7 +192,7 @@ Pamatuje zmínku o kompletně rozdílném pohdledu bobrilu na render komponent a
 
     const CounterComponent = b.component(CounterClass);
 ```
-Tento způsob dovedl komponenty ještě o krok dál, protože nevyžaduje aby uživatel manipuloval s bobril nodem. Namísto toho nás nechává pouze definovat jak bude vypadat výstup komponenty. Dále redefinuje context (svým způsobem). Jak je vidět z render funkce a lifecycle metod context úplně zmizel. Kam se poděl? Správná otázka zní na co jsme ho vůbec v jeho plné kráse potřebovali. Jako přepravku dat mezi render cycly? Na to přeci teď už můžeme využít classu a její property. Jako objekt z kterého jsme dostávali data.? Data nyní chodí jako vstupní parametr do render funkce a dále je máme k dostání na this. UH? Ano, blížíme se k cíli, kontextem je nyní sama class componenta.
+Tento způsob dovedl komponenty ještě o krok dál, protože nevyžaduje aby uživatel manipuloval s bobril nodem. Namísto toho nás nechává pouze definovat jak bude vypadat výstup komponenty. Dále redefinuje context (svým způsobem). Jak je vidět z render funkce a lifecycle metod context jako parametr úplně zmizel. Kam se poděl? Správná otázka zní proč jsme o něm vůbec museli přemýšlet. Context jsou přeci data týkající se komponenty, což v člověku evokuje automatický předpoklad dostání těchto dat na this v komponentě. Dále jsme context používali jako přepravku mezi render cycly, k tomu nám nyní poslouží prototype v případě funkcí a class property v případě hodnot. Co se dat z parentní komponenty týče, ty nyní  chodí jako vstupní parametr do render funkce a dále, jelikož je class komponenta sama kontextem, je máme k dostání na this. 
 I přes to, že je render funkce naprosto jednoduchá musíme do ní chvíli koukat a hlavně přemýslet o tom jak bobril nakládá s bobril nody. Pojďme nahradit bobril nody funkcemi.:
 ```typescript
     render(data: {}): b.IBobrilChildren {
