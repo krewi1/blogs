@@ -1,16 +1,16 @@
 #Zdar
 
-Vítejte na mém veřejném pískovišti. Mám v plánu brát tenhle prostor jako místo, na kterém se podívám na základy, porovnám možnosti reactu s možnostmi v bobrilu a v neposlední řadě bych se tady chtěl věnovat tématům, na které narazím ať už v při práci nebo side projektech. Všechny ukázky kodu k dostání v github repu: https://github.com/krewi1/bobril-examples
+Vítejte na mém veřejném pískovišti. Mám v plánu brát tenhle prostor jako místo, na kterém se podívám na základy, porovnám možnosti reactu s možnostmi v bobrilu a v neposlední řadě bych se chtěl věnovat tématům, na které narazím, ať už při práci nebo side projektech. Všechny ukázky kódu k dostání v github repu: https://github.com/krewi1/bobril-examples
 
-V tomhle prvním výlevu nejřív uvedu bobril a pak bych se rád podíval na zoubek základním stavebním jednotkám bobrilí aplikace tedy struktuře označené v d.ts jako IBobrilNode dále psané prostě jako bobril node.
+V tomto prvním výlevu nejdříve uvedu bobril, a pak bych se rád podíval na zoubek základním stavebním jednotkám bobrilí aplikace tedy struktuře označené v d.ts, jako IBobrilNode dále psané prostě jako bobril node.
 Teď tedy něco málo o bobrilu: framework jako takový je dílem Borise Letochy a byl vyvíjen pro potřeby 
-firmy Quadient. Framework si klade za cíl odprostiť uživatele od přímého konraktu s DOM vrstvou, tak že nad ní staví abstrakci. Zároveň za uživatele řeší problém typu: nic se nezměnilo, tedy nic nepřekresluji. Uživatel o aplikaci pak může přemýšlet přímočařeji a do napsaného kodu nezanášet logiku týkající se detekce změn, která by ostatní programátory opravující po něm jeho chyby mohla zbytečně rozptylovat. Tato detekce změn se nazývá "reconciliation" a možná se jí ještě pověnujem nekdy příště.
+firmy Quadient. Framework si klade za cíl odprostiť uživatele od přímého konraktu s DOM vrstvou, tak že nad ní staví abstrakci. Zároveň za uživatele řeší problém typu: nic se nezměnilo, tedy nic nepřekresluji. Uživatel o aplikaci pak může přemýšlet přímočařeji a do napsaného kodu nezanášet logiku týkající se detekce změn, která by ostatní programátory opravující po něm jeho chyby mohla zbytečně rozptylovat. Tato detekce změn se nazývá "reconciliation" a možná se jí ještě pověnujeme někdy příště.
 Všechny potřebné informace k rozjetí projektu a nastavení naleznete na [bobril.com](https://bobril.com/#/guides)
 
-Disclaimer: A ještě poslední věc před skutečným začátkem. To co zde budu prezentovat jsou osobní popisy/mentální modely. Budu se snažit co možná nejvěrněji opisovat realitu. Ale realita je složitá mrcha, tak berte v podtaz určitý stupeň vágnosti . Dále pak v případě nalezení nesrovnalostí/jiného názoru jsem otevřen debatě.
+Disclaimer: A ještě poslední věc před skutečným začátkem. To, co zde budu prezentovat jsou osobní popisy/mentální modely. Budu se snažit co možná nejvěrněji opisovat realitu. Ale realita je složitá mrcha, tak berte v podtaz určitý stupeň vágnosti . Dále pak v případě nalezení nesrovnalostí/jiného názoru jsem otevřen debatě.
 
-###Toť k povinně nepovinému úvodu a teď už s chutí do vyvíjení nějakých těch hodnot.
-Bobril node - jednotka struktury vytvářené bobrilem. Node není nic jiného než abstrakce nad konkrétním prvkem, který bude vykreslován v jeho nativním prosředí. V případě běhu na webu vytváříme za pomoci bobril nodů DOM elementy. Jak tedy tato abstrakce vypadá v podání bobrilu?:
+###Toť k povinně nepovinnému úvodu, a teď už s chutí do vyvíjení nějakých těch hodnot.
+Bobril node - jednotka struktury vytvářené bobrilem. Node není nic jiného, než abstrakce nad konkrétním prvkem, který bude vykreslován v jeho nativním prosředí. V případě běhu na webu vytváříme za pomoci bobril nodů DOM elementy. Jak tedy tato abstrakce vypadá v podání bobrilu?:
 ```javascript 1.8
  const node = {tag: "div", children: "Hello world"};
 ```
@@ -19,9 +19,9 @@ Takto definovaný node vytvoří div element a jeho obsah "Hello world". Tedy v 
     const div = document.createElement("div");
     div.textContent = "Hello world"
 ```
-Co se stane když bobril nodu nespecifikujeme tag propertu.? Bobril vynechá vytvoření elementu a přidává pouze obsah. V případě textového children přidává pouze textový obsah. V případě, že v property children předáváme bobril nodu další bobril nody, je jejich DOM reprezentace na rozdíl od struktury vytvářené bobrilem nezanořená.
+Co se stane, když bobril nodu nespecifikujeme tag propertu.? Bobril vynechá vytvoření elementu a přidává pouze obsah. V případě textového children přidává pouze textový obsah. V případě, že v property children předáváme bobril nodu další bobril nody, je jejich DOM reprezentace na rozdíl od struktury vytvářené bobrilem nezanořená.
 
-Teď už ale k nečemu zábavnějšímu a to ke komponentám. Komponenta je specifický typ bobril nodu, který má naplněnou svou propertu component objektem s patřičným interfacem (IBobrilComponent). Tím se z obyčejného bobril nodu stane chytřejší bobril node. Chytřejší znamená, že může plnohodnotně využívat prostředí ve kterém se nachází. Tedy odchytávat eventy, řešit po svém svém svůj životní cyklus, renderovat dynamická data, která přijdou z rodiče v komponentové struktuře a hlavně udržovat svůj vniřní stav a vyvolávat překreslení své a svých potomků. Chceme-li udělat z obyčejného nodu ten chytrý je postup poměrně přímočarý. Pro bobril node pouze dodefinujeme jeho komponentovou reprezentaci. Co se DOM interpretace týče je definice nody s komponentou ekvivalentní s nodou bez komponenty.
+Teď už ale k nečemu zábavnějšímu, a to ke komponentám. Komponenta je specifický typ bobril nodu, který má naplněnou svou propertu component objektem s patřičným interfacem (IBobrilComponent). Tím se z obyčejného bobril nodu stane chytřejší bobril node. Chytřejší znamená, že může plnohodnotně využívat prostředí, ve kterém se nachází. Tedy odchytávat eventy, řešit po svém svůj životní cyklus, renderovat dynamická data, která přijdou z rodiče v komponentové struktuře, a hlavně udržovat svůj vniřní stav a vyvolávat překreslení své a svých potomků. Chceme-li udělat z obyčejného nodu ten chytrý je postup poměrně přímočarý. Pro bobril node pouze dodefinujeme jeho komponentovou reprezentaci. Co se DOM interpretace týče, je definice nody s komponentou ekvivalentní s nodou bez komponenty.
 Tedy čistě z hlediska DOM equal platí:
 ```
      {tag: "div", children: "hello world"} === {component: {render: function (ctx) { ctx.me.children = "hello world"; ctx.me.tag = "div"}}}
@@ -38,7 +38,7 @@ Dost tlachání a hurá zpátky k psaní, konkrétně bobril node reprezentovan�
     }
  };
 ```
-Zajímvaý je přístup bobrilu k render funkci oproti reactu. React render funkce v class pojetí komponenty nepříjíma žádné parametry, protože vše k renderu potřebné najdeme na this objektu, kterým je současně renderovaný node. Zatímco u bobrilu je this v render funkci rovno komponentě kterou je node reprezentován. Další diametrální odlišností je návratová hodnota, která je v případě reactu ReactNode a v případě bobrilu void. Void? Jak tedy říci bobrilu aby něco zobrazil. Odpověď se nachází právě ve vstupních parametrech funkce. Neboť to jsou mutable datové struktury. A jak se vidět na ukázce nahoře k zobrazení na obrazovku dochází pomocí zapsání do children property bobril nodu. Pure object definition hint:
+Zajímvaý je přístup bobrilu k render funkci oproti reactu. React render funkce v class pojetí komponenty nepříjíma žádné parametry, protože vše k renderu potřebné najdeme na this objektu, kterým je současně renderovaný node. Zatímco u bobrilu je this v render funkci rovno komponentě, kterou je node reprezentován. Další diametrální odlišností je návratová hodnota, která je v případě reactu ReactNode a v případě bobrilu void. Void? Jak tedy říci bobrilu aby něco zobrazil. Odpověď se nachází právě ve vstupních parametrech funkce. Neboť to jsou mutable datové struktury. A jak se vidět na ukázce nahoře k zobrazení na obrazovku dochází pomocí zapsání do children property bobril nodu. Pure object definition hint:
 Pokud se rozhodnete upgradovat bobril node z jednoduchého na bobril node využívající komponentu, berte zřetel na mutable struktury viz.:
 ```javascript 1.8
  const node = {
@@ -54,7 +54,7 @@ Pokud se rozhodnete upgradovat bobril node z jednoduchého na bobril node využ�
 ```
 Omylem se nám podařilo ještě před zobrazením něčeho na obrazovku přepsat původní children.
 
-Takže jak už se nám podařilo zjistit, me je reference na bobril node. Prvním parametrem je context vysvětlovaný nahoře. Co je ke contextu potřeba dořící, tak to že nese data, v reactu známá jako props, tedy objekt kde najdeme data předávaná z rodičovské komponenty. Když se pustíme do hlubší pitvy context parametru zjistíme, že na contextu nalezneme také pod propertou component referenci na komponentu, tedy referenci na me (druhý parametr render funkce). Me jako druhý parametr je tedy pouze zkratka ze strany bobrilu. Do render funkce přichází ještě 3. parametr, který nemusí být definovaný (pro první render) a je jím konkrétní dom element spjatý s komponentou.
+Takže jak už se nám podařilo zjistit, me je reference na bobril node. Prvním parametrem je context vysvětlovaný nahoře. Co je ke contextu potřeba dořící, tak to, že nese data, v reactu známá jako props, tedy objekt, kde najdeme data předávaná z rodičovské komponenty. Když se pustíme do hlubší pitvy context parametru zjistíme, že na contextu nalezneme také pod propertou component referenci na komponentu, tedy referenci na me (druhý parametr render funkce). Me jako druhý parametr je tedy pouze zkratka ze strany bobrilu. Do render funkce přichází ještě 3. parametr, který nemusí být definovaný (pro první render) a je jím konkrétní dom element spjatý s komponentou.
 Toť ke statickým definicím. Ve chvíli, kdy komponentě chceme předat data zvenčí uděláme to tak, že data předáme bobril nodu přes property a ta jsou pak probublána až na context odkud si je v render funkci vyzvedneme. Tedy definice komponenty s daty vypadá takto:
 ```typescript
      const IBobrilStaticData: b.IBobrilNode = {
@@ -69,7 +69,7 @@ Toť ke statickým definicím. Ve chvíli, kdy komponentě chceme předat data z
         }
     };
 ```
-Ryze objektem zapsaná komponenta je značně naivní řešení neboť se s ní obíráme o možnost dynamicky posílaných dat dovnitř komponenty. Pojďme tedy tuto definici "zdynamičtit". Dynamika = funkce.
+Ryze objektem zapsaná komponenta je značně naivní řešení, neboť se s ní obíráme o možnost dynamicky posílaných dat dovnitř komponenty. Pojďme tedy tuto definici "zdynamičtit". Dynamika = funkce.
 ```typescript
     interface IBobrilDynamic {
         name: string
@@ -97,7 +97,7 @@ V takto zapsané factory funkci jde dále snadno nalézt obecný pattern, kdy IB
      }
  };
 ```
- Zde přichází na pomoc bobril se svými helper funkcemi: createComponent (bobril node vytvářející html element) a createVirtualComponent (bez korespondujícího html elementu). Ve skutečnosti dělají ještě režiji okolo a místo celé definice nodu přijímají pouze definici komponenty protože to je ve skutečnosti to zajímavé, ale principielně fungují obdobně jako naše factory. Na konkrétním případě pak využití helper funkcí vypadá takto:
+ Zde přichází na pomoc bobril se svými helper funkcemi: createComponent (bobril node vytvářející html element) a createVirtualComponent (bez korespondujícího html elementu). Ve skutečnosti dělají ještě režiji okolo a místo celé definice nodu přijímají pouze definici komponenty, protože to je ve skutečnosti to zajímavé, ale principielně fungují obdobně jako naše factory. Na konkrétním případě pak využití helper funkcí vypadá takto:
 ```typescript
     interface IContext extends b.IBobrilCtx {
         increment(): void;
@@ -157,7 +157,7 @@ V takto zapsané factory funkci jde dále snadno nalézt obecný pattern, kdy IB
 Helper funkce se nám postará o vytvoření factory funkce k definovanému objektu posílanému skrze parametr. A generika na funkci nám zaručí typesefty volání faktory funkce.
 
 ###Nejnovější bobril a nové API
-Pamatuje zmínku o kompletně rozdílném pohdledu bobrilu na render komponent a zobrazování na základě mutování objektu.? Bobril ve verzi 9.0 přichází s Api podobnějším Reactu a kompletně novou možností definování komponent přes classy:
+Pamatujete zmínku o kompletně rozdílném pohdledu bobrilu na render komponent a zobrazování na základě mutování objektu.? Bobril ve verzi 9.0 přichází s Api podobnějším Reactu a kompletně novou možností definování komponent přes classy:
 ```typescript
     class CounterClass extends b.Component<never> {
         count: number = 0;
@@ -193,7 +193,7 @@ Pamatuje zmínku o kompletně rozdílném pohdledu bobrilu na render komponent a
 
     const CounterComponent = b.component(CounterClass);
 ```
-Tento způsob dovedl komponenty ještě o krok dál, protože nevyžaduje aby uživatel manipuloval s bobril nodem. Namísto toho nás nechává pouze definovat jak bude vypadat výstup komponenty. Dále redefinuje context (svým způsobem). Jak je vidět z render funkce a lifecycle metod context jako parametr úplně zmizel. Kam se poděl? Správná otázka zní proč jsme o něm vůbec museli přemýšlet. Context jsou přeci data týkající se komponenty, což v člověku evokuje automatický předpoklad dostání těchto dat na this v komponentě. Dále jsme context používali jako přepravku mezi render cycly, k tomu nám nyní poslouží prototype v případě funkcí a class property v případě hodnot. Co se dat z parentní komponenty týče, ty nyní  chodí jako vstupní parametr do render funkce a dále, jelikož je class komponenta sama kontextem, je máme k dostání na this. 
+Tento způsob dovedl komponenty ještě o krok dále, protože nevyžaduje, aby uživatel manipuloval s bobril nodem. Namísto toho nás nechává pouze definovat, jak bude vypadat výstup komponenty. Dále redefinuje context (svým způsobem). Jak je vidět z render funkce a lifecycle metod context, jako parametr úplně zmizel. Kam se poděl? Správná otázka zní: proč jsme o něm vůbec museli přemýšlet? Context jsou přeci data týkající se komponenty, což v člověku evokuje automatický předpoklad dostání těchto dat na this v komponentě. Dále jsme context používali jako přepravku mezi render cycly, k tomu nám nyní poslouží prototype v případě funkcí a class property v případě hodnot. Co se dat z parentní komponenty týče, ty nyní  chodí jako vstupní parametr do render funkce a dále, jelikož je class komponenta sama kontextem, je máme k dostání na this. 
 I přes to, že je render funkce naprosto jednoduchá musíme do ní chvíli koukat a hlavně přemýslet o tom jak bobril nakládá s bobril nody. Pojďme nahradit bobril nody funkcemi.:
 ```typescript
     render(data: {}): b.IBobrilChildren {
@@ -205,7 +205,7 @@ I přes to, že je render funkce naprosto jednoduchá musíme do ní chvíli kou
        ]
     }
 ```
-Abstrahovali jsme vytváření bobril nodů za funkční volání a jejich pojmenováním zaručili intuici o tom co se zhuba promítne do DOMu. Můžeme to z hlediska přehlednosti posunout ještě dál? Odpověď zní možná. :D Pokud použijeme technologii JSX se kterou je bobril plně kompatibilní, můžeme render funkci deklarovat následovně:
+Abstrahovali jsme vytváření bobril nodů za funkční volání a jejich pojmenováním zaručili intuici o tom, co se zhuba promítne do DOMu. Můžeme to z hlediska přehlednosti posunout ještě dál? Odpověď zní: možná. :D Pokud použijeme technologii JSX, se kterou je bobril plně kompatibilní, můžeme render funkci deklarovat následovně:
 ```typescript
     render(data: {}): b.IBobrilChildren {
          return (
@@ -218,9 +218,11 @@ Abstrahovali jsme vytváření bobril nodů za funkční volání a jejich pojme
          )
     }
 ```
-V Takto zapsaném renderu jsme jednak zachovali intuici o tom co bude v DOMu za elementy a navíc jsme zápis dost přiblížili tomu co v DOMu opravdu bude syntakticky. Na druhou stranu ta abstrakce funkcí, schovávajících se za jsx může být matoucí a vyvolávat WTF reakce pro neznalce JSX? Názor si musí každý udělat sám. 
+V Takto zapsaném renderu jsme jednak zachovali intuici o tom, co bude v DOMu za elementy a navíc jsme zápis dost přiblížili tomu, co v DOMu opravdu bude syntakticky. Na druhou stranu ta abstrakce funkcí, schovávajících se za jsx, může být matoucí a vyvolávat WTF reakce pro neznalce JSX? Názor si musí každý udělat sám. 
 
-Tímto jsme se dostali na konec. Děkuji všem kdo se dostali až sem děkuji a tě píc.
+Tímto jsme se dostali na konec. 
+
+Děkuji všem, kdo se dostali až sem, a tě píc.
 
 
 
