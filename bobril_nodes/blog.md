@@ -5,6 +5,7 @@ Vítejte na mém veřejném pískovišti. Mám v plánu brát tenhle prostor jak
 V tomhle prvním výlevu nejřív uvedu bobril a pak bych se rád podíval na zoubek základním stavebním jednotkám bobrilí aplikace tedy struktuře označené v d.ts jako IBobrilNode dále psané prostě jako bobril node.
 Teď tedy něco málo o bobrilu: framework jako takový je dílem Borise Letochy a byl vyvíjen pro potřeby 
 firmy Quadient. Framework si klade za cíl odprostiť uživatele od přímého konraktu s DOM vrstvou, tak že nad ní staví abstrakci. Zároveň za uživatele řeší problém typu: nic se nezměnilo, tedy nic nepřekresluji. Uživatel o aplikaci pak může přemýšlet přímočařeji a do napsaného kodu nezanášet logiku týkající se detekce změn, která by ostatní programátory opravující po něm jeho chyby mohla zbytečně rozptylovat. Tato detekce změn se nazývá "reconciliation" a možná se jí ještě pověnujem nekdy příště.
+Všechny potřebné informace k rozjetí projektu a nastavení naleznete na [bobril.com](https://bobril.com/#/guides)
 
 Disclaimer: A ještě poslední věc před skutečným začátkem. To co zde budu prezentovat jsou osobní popisy/mentální modely. Budu se snažit co možná nejvěrněji opisovat realitu. Ale realita je složitá mrcha, tak berte v podtaz určitý stupeň vágnosti . Dále pak v případě nalezení nesrovnalostí/jiného názoru jsem otevřen debatě.
 
@@ -96,7 +97,7 @@ V takto zapsané factory funkci jde dále snadno nalézt obecný pattern, kdy IB
      }
  };
 ```
- Zde přichází na pomoc bobril se svými helper funkcemi: createComponent a createVirtualComponent. Ve skutečnosti dělají ještě režiji okolo a místo celé definice nodu přijímají pouze definici komponenty protože to je ve skutečnosti to zajímavé, ale principielně fungují obdobně jako naše factory. Na konkrétním případě pak využití helper funkcí vypadá takto:
+ Zde přichází na pomoc bobril se svými helper funkcemi: createComponent (bobril node vytvářející html element) a createVirtualComponent (bez korespondujícího html elementu). Ve skutečnosti dělají ještě režiji okolo a místo celé definice nodu přijímají pouze definici komponenty protože to je ve skutečnosti to zajímavé, ale principielně fungují obdobně jako naše factory. Na konkrétním případě pak využití helper funkcí vypadá takto:
 ```typescript
     interface IContext extends b.IBobrilCtx {
         increment(): void;
@@ -219,7 +220,7 @@ Abstrahovali jsme vytváření bobril nodů za funkční volání a jejich pojme
 ```
 V Takto zapsaném renderu jsme jednak zachovali intuici o tom co bude v DOMu za elementy a navíc jsme zápis dost přiblížili tomu co v DOMu opravdu bude syntakticky. Na druhou stranu ta abstrakce funkcí, schovávajících se za jsx může být matoucí a vyvolávat WTF reakce pro neznalce JSX? Názor si musí každý udělat sám. 
 
-Tímto jsme se dostali na konec. Těm kdo se prokousali až sem gratuluji, že jsem je neunudil a jen co mě to škola dovolí tak se ozvu znovu. Tě píc.
+Tímto jsme se dostali na konec. Děkuji všem kdo se dostali až sem děkuji a tě píc.
 
 
 
