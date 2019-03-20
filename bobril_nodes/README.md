@@ -4,7 +4,7 @@ Vítejte na mém veřejném pískovišti. Mám v plánu brát tenhle prostor jak
 
 V tomto prvním výlevu nejdříve uvedu bobril, a pak bych se rád podíval na zoubek základním stavebním jednotkám bobrilí aplikace tedy struktuře označené v d.ts, jako IBobrilNode dále psané prostě jako bobril node.
 Teď tedy něco málo o bobrilu: framework jako takový je dílem Borise Letochy a byl vyvíjen pro potřeby 
-firmy Quadient. Framework si klade za cíl odprostiť uživatele od přímého konraktu s DOM vrstvou, tak že nad ní staví abstrakci. Zároveň za uživatele řeší problém typu: nic se nezměnilo, tedy nic nepřekresluji. Uživatel o aplikaci pak může přemýšlet přímočařeji a do napsaného kodu nezanášet logiku týkající se detekce změn, která by ostatní programátory opravující po něm jeho chyby mohla zbytečně rozptylovat. Tato detekce změn se nazývá "reconciliation" a možná se jí ještě pověnujeme někdy příště.
+firmy Quadient. Framework si klade za cíl odprostiť uživatele od přímého konraktu s DOM vrstvou tak, že nad ní staví abstrakci. Zároveň za uživatele řeší problém typu: nic se nezměnilo, tedy nic nepřekresluji. Uživatel o aplikaci pak může přemýšlet přímočařeji a do napsaného kodu nezanášet logiku týkající se detekce změn, která by ostatní programátory opravující po něm jeho chyby mohla zbytečně rozptylovat. Tato detekce změn se nazývá "reconciliation" a možná se jí ještě pověnujeme někdy příště.
 Všechny potřebné informace k rozjetí projektu a nastavení naleznete na [bobril.com](https://bobril.com/#/guides)
 
 Disclaimer: A ještě poslední věc před skutečným začátkem. To, co zde budu prezentovat jsou osobní popisy/mentální modely. Budu se snažit co možná nejvěrněji opisovat realitu. Ale realita je složitá mrcha, tak berte v potaz určitý stupeň vágnosti . Dále pak v případě nalezení nesrovnalostí/jiného názoru jsem otevřen debatě.
@@ -40,7 +40,7 @@ Dost tlachání a hurá zpátky k psaní, konkrétně bobril node reprezentovan�
  };
 ```
 Zajímvaý je přístup bobrilu k render funkci oproti reactu. React render funkce v class pojetí komponenty nepříjíma žádné parametry, protože vše k renderu potřebné najdeme na this objektu, kterým je současně renderovaný node. Zatímco u bobrilu je this v render funkci rovno komponentě, kterou je node reprezentován. Další diametrální odlišností je návratová hodnota, která je v případě reactu ReactNode a v případě bobrilu void. Void? Jak tedy říci bobrilu aby něco zobrazil. Odpověď se nachází právě ve vstupních parametrech funkce. Neboť to jsou mutable datové struktury. A jak se vidět na ukázce nahoře k zobrazení na obrazovku dochází pomocí zapsání do children property bobril nodu. Pure object definition hint:
-Pokud se rozhodnete upgradovat bobril node z jednoduchého na bobril node využívající komponentu, berte zřetel na mutable struktury viz.:
+Pokud se rozhodnete upgradovat bobril node z jednoduchého na bobril node využívající komponentu, berte zřetel na mutable struktury viz:
 ```javascript 1.8
  const node = {
 	tag: "div",
@@ -207,7 +207,7 @@ I přes to, že je render funkce naprosto jednoduchá musíme do ní chvíli kou
        ]
     }
 ```
-Abstrahovali jsme vytváření bobril nodů za funkční volání a jejich pojmenováním zaručili intuici o tom, co se zhuba promítne do DOMu. Můžeme to z hlediska přehlednosti posunout ještě dál? Odpověď zní: možná. :D Pokud použijeme technologii JSX, se kterou je bobril plně kompatibilní, můžeme render funkci deklarovat následovně:
+Abstrahovali jsme vytváření bobril nodů za volání funkce a jejich pojmenováním zaručili intuici o tom, co se zhuba promítne do DOMu. Můžeme to z hlediska přehlednosti posunout ještě dál? Odpověď zní: možná. :D Pokud použijeme technologii JSX, se kterou je bobril plně kompatibilní, můžeme render funkci deklarovat následovně:
 ```typescript
     render(data: {}): b.IBobrilChildren {
          return (
