@@ -1,4 +1,4 @@
-#Zdar
+# Zdar
 
 Vítejte na mém veřejném pískovišti. Mám v plánu brát tenhle prostor jako místo, na kterém se podívám na základy, porovnám možnosti reactu s možnostmi v bobrilu a v neposlední řadě bych se chtěl věnovat tématům, na které narazím, ať už při práci nebo side projektech. Všechny ukázky kódu k dostání v github repu: https://github.com/krewi1/bobril-examples
 
@@ -9,7 +9,8 @@ Všechny potřebné informace k rozjetí projektu a nastavení naleznete na [bob
 
 Disclaimer: A ještě poslední věc před skutečným začátkem. To, co zde budu prezentovat jsou osobní popisy/mentální modely. Budu se snažit co možná nejvěrněji opisovat realitu. Ale realita je složitá mrcha, tak berte v potaz určitý stupeň vágnosti . Dále pak v případě nalezení nesrovnalostí/jiného názoru jsem otevřen debatě.
 
-###Toť k povinně nepovinnému úvodu, a teď už s chutí do vyvíjení nějakých těch hodnot.
+### Toť k povinně nepovinnému úvodu, a teď už s chutí do vyvíjení nějakých těch hodnot.
+
 Bobril node - jednotka struktury vytvářené bobrilem. Node není nic jiného, než abstrakce nad konkrétním prvkem, který bude vykreslován v jeho nativním prosředí. V případě běhu na webu vytváříme za pomoci bobril nodů DOM elementy. Jak tedy tato abstrakce vypadá v podání bobrilu?:
 ```javascript 1.8
  const node = {tag: "div", children: "Hello world"};
@@ -156,7 +157,7 @@ V takto zapsané factory funkci jde dále snadno nalézt obecný pattern, kdy IB
 ```
 Helper funkce se nám postará o vytvoření factory funkce k definovanému objektu posílanému skrze parametr. A generika na funkci nám zaručí typesefty volání faktory funkce.
 
-###Nejnovější bobril a nové API
+### Nejnovější bobril a nové API
 Pamatujete zmínku o kompletně rozdílném pohledu bobrilu na render komponent a zobrazování na základě mutování objektu.? 
 Bobril ve verzi 9.0 přichází s Api podobnějším Reactu a kompletně novou možností definování komponent přes classy:
 ```typescript
