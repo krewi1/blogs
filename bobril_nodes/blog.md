@@ -7,7 +7,7 @@ Teď tedy něco málo o bobrilu: framework jako takový je dílem Borise Letochy
 firmy Quadient. Framework si klade za cíl odprostiť uživatele od přímého konraktu s DOM vrstvou, tak že nad ní staví abstrakci. Zároveň za uživatele řeší problém typu: nic se nezměnilo, tedy nic nepřekresluji. Uživatel o aplikaci pak může přemýšlet přímočařeji a do napsaného kodu nezanášet logiku týkající se detekce změn, která by ostatní programátory opravující po něm jeho chyby mohla zbytečně rozptylovat. Tato detekce změn se nazývá "reconciliation" a možná se jí ještě pověnujeme někdy příště.
 Všechny potřebné informace k rozjetí projektu a nastavení naleznete na [bobril.com](https://bobril.com/#/guides)
 
-Disclaimer: A ještě poslední věc před skutečným začátkem. To, co zde budu prezentovat jsou osobní popisy/mentální modely. Budu se snažit co možná nejvěrněji opisovat realitu. Ale realita je složitá mrcha, tak berte v podtaz určitý stupeň vágnosti . Dále pak v případě nalezení nesrovnalostí/jiného názoru jsem otevřen debatě.
+Disclaimer: A ještě poslední věc před skutečným začátkem. To, co zde budu prezentovat jsou osobní popisy/mentální modely. Budu se snažit co možná nejvěrněji opisovat realitu. Ale realita je složitá mrcha, tak berte v potaz určitý stupeň vágnosti . Dále pak v případě nalezení nesrovnalostí/jiného názoru jsem otevřen debatě.
 
 ###Toť k povinně nepovinnému úvodu, a teď už s chutí do vyvíjení nějakých těch hodnot.
 Bobril node - jednotka struktury vytvářené bobrilem. Node není nic jiného, než abstrakce nad konkrétním prvkem, který bude vykreslován v jeho nativním prosředí. V případě běhu na webu vytváříme za pomoci bobril nodů DOM elementy. Jak tedy tato abstrakce vypadá v podání bobrilu?:
@@ -157,7 +157,8 @@ V takto zapsané factory funkci jde dále snadno nalézt obecný pattern, kdy IB
 Helper funkce se nám postará o vytvoření factory funkce k definovanému objektu posílanému skrze parametr. A generika na funkci nám zaručí typesefty volání faktory funkce.
 
 ###Nejnovější bobril a nové API
-Pamatujete zmínku o kompletně rozdílném pohdledu bobrilu na render komponent a zobrazování na základě mutování objektu.? Bobril ve verzi 9.0 přichází s Api podobnějším Reactu a kompletně novou možností definování komponent přes classy:
+Pamatujete zmínku o kompletně rozdílném pohledu bobrilu na render komponent a zobrazování na základě mutování objektu.? 
+Bobril ve verzi 9.0 přichází s Api podobnějším Reactu a kompletně novou možností definování komponent přes classy:
 ```typescript
     class CounterClass extends b.Component<never> {
         count: number = 0;
