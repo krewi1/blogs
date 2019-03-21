@@ -39,7 +39,8 @@ Dost tlachání a hurá zpátky k psaní, konkrétně bobril node reprezentovan�
     }
  };
 ```
-Zajímvaý je přístup bobrilu k render funkci oproti reactu. React render funkce v class pojetí komponenty nepříjíma žádné parametry, protože vše k renderu potřebné najdeme na this objektu, kterým je současně renderovaný node. Zatímco u bobrilu je this v render funkci rovno komponentě, kterou je node reprezentován. Další diametrální odlišností je návratová hodnota, která je v případě reactu ReactNode a v případě bobrilu void. Void? Jak tedy říci bobrilu aby něco zobrazil. Odpověď se nachází právě ve vstupních parametrech funkce. Neboť to jsou mutable datové struktury. A jak se vidět na ukázce nahoře k zobrazení na obrazovku dochází pomocí zapsání do children property bobril nodu. Pure object definition hint:
+Zajímavý je přístup bobrilu k render funkci oproti reactu. React render funkce v class pojetí komponenty nepříjíma 
+žádné parametry, protože vše k renderu potřebné najdeme na this objektu, kterým je současně renderovaný node. Zatímco u bobrilu je this v render funkci rovno komponentě, kterou je node reprezentován. Další diametrální odlišností je návratová hodnota, která je v případě reactu ReactNode a v případě bobrilu void. Void? Jak tedy říci bobrilu aby něco zobrazil. Odpověď se nachází právě ve vstupních parametrech funkce. Neboť to jsou mutable datové struktury. A jak se vidět na ukázce nahoře k zobrazení na obrazovku dochází pomocí zapsání do children property bobril nodu. Pure object definition hint:
 Pokud se rozhodnete upgradovat bobril node z jednoduchého na bobril node využívající komponentu, berte zřetel na mutable struktury viz:
 ```javascript 1.8
  const node = {
