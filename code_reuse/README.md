@@ -3,14 +3,13 @@ Holahou přátelé. Holahou přátelé, holahou přátelé. Jak lépe začít do
 repetitivností. :)
 
 ## DRY koncept
-DRY je acronym pro 3 anglická slovíčka DONT REPEAT YOURSELF, tedy NEOPAKUJ SE. Což se lehce řekne nicméně najít vhodnou 
-abstrakci je kokikrát složité. A proto zde máme návrhové vzory, které problém s vymýšlením abstrakce řeší za nás a my
- na ně jen našroubujem problém. Konkrétně bych chtěl vypíchnout 3 možnosti jak pomocí kompozice sdílet kód. A jdeme 
- na to. A někdy příště se pověnujeme dědičnosti.
+DRY je acronym pro 3 anglická slovíčka DONT REPEAT YOURSELF, tedy NEOPAKUJ SE. Což se lehce řekne, nicméně najít 
+vhodnou abstrakci je kokikrát složité. A proto zde máme návrhové vzory, které problém s vymýšlením abstrakce řeší za nás a my
+ na ně jen našroubujem problém. Konkrétně bych chtěl vypíchnout 3 možnosti jak pomocí kompozice sdílet kód.
  
  ## DISCLAIMER
- Celý tento článek je založen na API bobrilu 9.0+ a na konci Reactu, jelikož stejné API yatím ještě neni dostupné v 
- bobrilu. Nicméně třeba se ho jednou také dočkáme.
+ Celý tento článek je založen na API bobrilu 9.6+. Neb v něm přichází bobril s podporou hooků, za pomoci kterých už 
+ jsme schopni napsat většinu logiky. 
  
 ## Render props
 Implementace takovéhoto návrhového vzoru je jednoduchá, vytvoříme komponentu, která jako svá vstupní data nebude brát
@@ -464,12 +463,81 @@ function App() {
   );
 }
 ```
-Zajímavý je zde další použitý hook useRef, který nám poslouží jako zmoňovaná přepravka, do které si uložíme referenci
- na DOM element.
+Zajímavý je zde další použitý hook useRef, který nám poslouží jako zmiňovaná přepravka, do které si uložíme referenci
+ na DOM element. Use ref tedy vytváří objekt, který nám poslouží pro předávání dat z jednoho renderu do dalšího.
+ 
+ ## A máme tu bobril a verzi 9.6. HOOK IT UP
+ Než jsem tohle psaní stihl vydat přišel bobril s novou verzí ve které slibuje funkšční hooky useEffect a 
+ useLayoutEffect. Takže teď již nic nebrání tomu zkusit napsat tu samou logiku jako v reactu i v bobrilu.
+ 
+ ```typescript
+export const UseState = b.component(class UseStateClazz extends b.Component<{}> {
+    element?: HTMLElement;
+    postInitDom(me: b.IBobrilCacheNode): void {
+        this.element = b.getDomNode(me) as HTMLElement
+    }
+
+    render() {
+        const [offsetTop, offsetLeft] = useElementOffset(this.element);
+        const [xPosition, setXPosition] = b.useState(0);
+        const [yPosition, setYPosition] = b.useState(0);
+        return (
+            <div style={{width: "300px", height: "300px", position: "relative"}} onMouseMove={(event: any) => {
+                setXPosition(event.x - offsetLeft);
+                setYPosition(event.y - offsetTop);
+            }}>
+                <div style={{position: "absolute", top: yPosition, left: xPosition}}>Rendered item</div>
+            </div>
+        )
+    }
+});
+```
+Bobril narozdíl od reactu umožňuje využití hooků v class komponentách. Což je zajímavé a class pojetí nám umožní 
+úplně vynechat useRef hook, který budeme moci suplovat právě classou. To je možné vidět právě na tomto příkladu, kde 
+si do class property element ukládáme aktualní referenci na element. Ten dostáváme v lifecycle metodě postInitDom.
+Vlastí definici hooku se budu věnovat v zápětí, takže useElementOffset přeskočím.
+
+Tak a teď example s detekcí zmáčklého tlačítka. Přeskočím nefunčni řešení. Vycházejme z toho že bobril funguje stejně
+ jako react. Definujme tedy vlastní hook, který bude umět detekovat zmáčklé tlačítko na window.
+ ```typescript
+function useKeyPressed() {
+    const [pressedKey, setPressedKey] = b.useState("");
+    const [codeMode, setCodeMode] = b.useState(false);
+
+    b.useEffect(() => {
+        const handler = (event: KeyboardEvent) => {
+            if (event.key === " ") {
+                setCodeMode(!codeMode);
+            } else {
+                setPressedKey(codeMode ? event.code : event.key);
+            }
+        };
+        window.addEventListener("keypress", handler);
+        return () => window.removeEventListener("keypress", handler);
+    }, [codeMode]);
+
+    return pressedKey;
+}
+```
+
+A nyní komponenta využívající tento hook
+```typescript
+export const UseEffect = b.component(() => {
+    const pressedKey = useKeyPressed();
+
+    return (
+        <div>
+            {pressedKey}
+        </div>
+    )
+});
+```
+Jednoduchý zápis, jednoduchá znovupoužitelnost na základě zavolání funkce. 
  
  ## Závěr
- Funkcionální kompozice komponent je hezký přístup ke sdílení logiky na frontendu. Osobně ji preferuji před možnostmi
-  využití dědičnosti, kvůli přehlednosti a deklarativnosti. Kompozice před námi neskrývá žádnou logiku, takže hodnotu
-   dostaneme prostě skrz zavolání funkce a ne skrytě někde ze svých předků.
-   
- A tím jsme se dostali až na konec. Věrným čtenářům děkuji a tě píc.
+ S možnostmi jež nám poskytuje bobril je ale nutné zacházet opatrně a jasně definovat oblastni ve kterých chceme 
+ používat který přístup. Dovedu si dost dobře představit, že neopatrným mixováním hooků s class pojetím definice 
+ komponenty zaneseme do kódu nadbytečnou logiku, která v konečném důsledku bude těžko uchopitelná a bude bránit 
+ čitelnosti kódu.
+ 
+ A tím jsme se dostali až na konec. Čtenářům děkuji a tě píc.
