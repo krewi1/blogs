@@ -9,7 +9,8 @@ vhodnou abstrakci je kokikrát složité. A proto zde máme návrhové vzory, kt
  
  ## DISCLAIMER
  Celý tento článek je založen na API bobrilu 9.6+. Neb v něm přichází bobril s podporou hooků, za pomoci kterých už 
- jsme schopni napsat většinu logiky. 
+ jsme schopni napsat většinu logiky. Pro plné pochopení doporučuji otevřít example projekt a konkrétní implementace 
+ si vyzkoušet na vlasntí kůži.
  
 ## Render props
 Implementace takovéhoto návrhového vzoru je jednoduchá, vytvoříme komponentu, která jako svá vstupní data nebude brát
@@ -265,8 +266,12 @@ již byla promisa resolvnutá a vpřípadě že ano, renderuje komponentu které
  ## Hooks
  
  ##DISLCLAIMER
- Ještě je v bobrilu nemáme úplně dostupné, kromě hooku useState. Takže to budu představovat s využitím reactu.
+ S bobril pojetím hooku jsem ještě nenapsal nic velkého. Budu vycházet ze zkušeností nasbíraných v reactu. Nejsem si 
+ tedy úplně jistý, že všechny zde prezentované examply budou napsané ideálně bobril způsobem. V případě, že znáte 
+ lepší řešení neváhejte napsat a prodiskutujeme to.
  
+ 
+ ## Představení hooků
 Zatím jsme si představili 2 návrhové vzory, které se svým přístupem liší a člověk musí často přemýšlet nad tím, který
  bude lepší použít. Co kdyby jsme měli jen jeden přístup, který pokryje všechny casy plnohodnotně? To zní dobře, ale 
  jak na to? Odpověď je HOOK. Pojďme si představit ty základní. 
@@ -274,38 +279,40 @@ Zatím jsme si představili 2 návrhové vzory, které se svým přístupem liš
  ## useState
  Chceme mít stav uvnitř funkionální komponenty? Není problém.
 ```javascript 1.8
-export const UseStateHook = () => {
-  const [xPosition, setXPosition] = useState(0);
-  const [yPosition, setYPosition] = useState(0);
+export const UseStateHook = b.component(() => {
+  const [xPosition, setXPosition] = b.useState(0);
+  const [yPosition, setYPosition] = b.useState(0);
 
   return (
     <div
       style={{ width: "300px", height: "300px", position: "relative" }}
       onMouseMove={event => {
-        setXPosition(event.clientX);
-        setYPosition(event.clientY);
+        setXPosition(event.x);
+        setYPosition(event.y);
       }}
     >
       <div style={{ position: "absolute", top: yPosition, left: xPosition }}>
         Rendered item
       </div>
     </div>
-  );
-}
+  )
+});
 ```
-[codesanbox](https://codesandbox.io/s/54ol8kvo3l) V podstatě asi není nic moc co vysvětlovat. React vyvoří v paměti 
-místo do kterého ukládá informace které se vážou k render funkci této komponenty, v každém jejím dalším renderu jsou 
+V podstatě asi není nic moc co vysvětlovat. Bobril vyvoří v paměti 
+místo, do kterého ukládá informace, které se vážou k render funkci této komponenty, v každém jejím dalším renderu jsou 
 informace vzaté z tohoto stejného místa. Clean and easy.
 
 ## useEffect
-Vycházejme z překladu, tedy použij effect(side effect). Hook je volán mimo hlavní render funkci. Není o něm tedy 
-možné přemýšlet synchronně. Slouží pro provádění side effektů týkajících se komponenty (volání API, 
-bindění na browser eventy, subscribce).
+Vycházejme z překladu, tedy "použij effect". Efektem myslíme side efekt. UseEffect je volán mimo výkon render funkce. 
+Není o něm tedy možné přemýšlet synchronně. Slouží pro provádění side effektů týkajících se komponenty (volání API, 
+bindění na browser eventy, subscribce). Bobril ještě přichází se synchronní verzí useEffectu pojmenovanou 
+useLayoutEffect. S ní opatrně neb jelikož je synchronní dokáže zablokovat render thread. Tedy zaseknout uživatelské 
+rozhraní a tím vyvolat nevoli na straně uživatele a to přeci nechceme :)
 
 ```typescript
-export const UseEffect: React.FunctionComponent = () => {
-  const [pressedKey, setPressedKey] = React.useState("");
-  React.useEffect(() => {
+export const UseEffect: b.component(() => {
+  const [pressedKey, setPressedKey] = b.useState("");
+  b.useEffect(() => {
     console.log("binding will happen");
     const handler = (event: KeyboardEvent) => setPressedKey(event.key);
     window.addEventListener("keypress", handler);
@@ -318,9 +325,9 @@ export const UseEffect: React.FunctionComponent = () => {
       {pressedKey}
     </div>
   )
-};
+});
 ```
-[codesanbox](https://codesandbox.io/s/k96krw9p45) Funkční řešení výpisu zmáčknuté klávesy. Jelikož bindíme na window je dobrá zvyklost si po sobě také uklidit. K tomu slouží 
+Funkční řešení výpisu zmáčknuté klávesy. Jelikož bindíme na window je dobrá zvyklost si po sobě také uklidit. K tomu slouží 
 návratová hodnota funkce deklarované uvnitř useEffectu. Jak jsme již zkonstatovali, řešení je to funkční. Nicméně 
 pokud otevřeme konzoli zjistíme, že se nám s každým voláním render funkce komponenty pokaždé provádí deklarovaný 
 efekt. Pokud efekt není nutné vykonávat s každým rendrem, můžeme useEffectu druhým parametrem říci jeho závislosti, 
@@ -328,9 +335,9 @@ na které ma brát zřetel při rozhodování zda bude efekt funkci vykonávat z
 dependencí prázdný. Což znamená. Proveď jen a pouze při prvním renderu, pak už tě nemusí zajímat nic.
 
 ```typescript
-export const UseEffect: React.FunctionComponent = () => {
-  const [pressedKey, setPressedKey] = React.useState("");
-  React.useEffect(() => {
+export const UseEffect = b.component(() => {
+  const [pressedKey, setPressedKey] = b.useState("");
+  b.useEffect(() => {
     console.log("binding will happen");
     const handler = (event: KeyboardEvent) => setPressedKey(event.key);
     window.addEventListener("keypress", handler);
@@ -343,18 +350,17 @@ export const UseEffect: React.FunctionComponent = () => {
       {pressedKey}
     </div>
   );
-};
+});
 ```
-[codesanbox](https://codesandbox.io/s/xr0xo3rm9o) Pokud se nyní koukneme do konzole tak ta je krásně čistá, teda až 
-na ten bordel, za který může codeSandbox.
+ Pokud se nyní koukneme do konzole tak ta je krásně čistá.
 
 Teď ale něco zajímavějšího. Pojďme definovat další mód pro náš handler na window, ve kterém začneme místo zmáčklé 
-klávesy vypisovat její kód. Módu budeme měnit za pomoci mezerníku. 
+klávesy vypisovat její kód. Mód budeme měnit za pomoci mezerníku. 
 ```typescript
-export const UseEffectNotWorking: React.FunctionComponent = () => {
-  const [pressedKey, setPressedKey] = useState("");
-  const [codeMode, setCodeMode] = useState(false);
-  useEffect(() => {
+export const UseEffectNotWorking = b.component(() => {
+  const [pressedKey, setPressedKey] = b.useState("");
+  const [codeMode, setCodeMode] = b.useState(false);
+  b.useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (event.key === " ") {
         setCodeMode(!codeMode);
@@ -371,9 +377,8 @@ export const UseEffectNotWorking: React.FunctionComponent = () => {
       {pressedKey}
     </div>
   )
-};
+});
 ```
-[codesanbox](https://codesandbox.io/s/xz96nopjnw)
 Poučeni z minulých nezdarů rovnou přidáváme binding jen a pouze v případě prvního renderu. Ono to ale nefunguje. 
 Odpověď na otázku proč to nefunguje najdeme v javascriptu samotném a konrétně za to mohou closury. Deklarace efekt 
 funkce probíhá v čase prvního renderu, kdy máme buňce pojmenované codeMode uloženou hodnotu false. Hodnota false je 
@@ -382,7 +387,7 @@ vyhodnocen negativně. Zalhali jsme totiž useEffectu ohledně jeho závislostí
 codeMode. Přepíšeme tedy seznam závislostí.
 
 ```typescript
-export const UseEffectNotWorking: React.FunctionComponent = () => {
+export const UseEffectNotWorking = b.component(() => {
   const [pressedKey, setPressedKey] = React.useState("");
   const [codeMode, setCodeMode] = React.useState(false);
   React.useEffect(
@@ -407,135 +412,87 @@ export const UseEffectNotWorking: React.FunctionComponent = () => {
       {pressedKey}
     </div>
   );
-};
+});
 ```
-[codesanbox](https://codesandbox.io/s/ojp3k0z95q) Vualá a vše funguje jak má. Když zkusíme zmáčknout mezerník 
+Vualá a vše funguje jak má. Když zkusíme zmáčknout mezerník 
 zjistíme, že funkce uvnitř effektu proběhla znovu, tedy došlo k přebindování funkce a tato nová funkce má už novou 
 hodnotu ve své closure.
 
-Tak a teď to hlavní okolo hooku proč je kolem nich takové haló. React nám umožňuje kromě standartních hooku 
-, nevyjmenoval jsem zde všechny, pro kompletní seznam se podívejte do jejich dokumentace: [doc](https://reactjs.org/docs/hooks-reference.html),
-definovat i vlastní. Pojďme tedy napsat logiku pro počítání komponenty na souřadnicích za pomoci hooků. Dle konvence 
+## Znovupoužitelnost s pomocí hooků
+Tak a teď to hlavní okolo hooku proč je kolem nich v komunitě okolo reactu takové haló. Bobril, stejně jako react nám
+ umožňuje definovat vlastní hooky, ve kterém můžeme dle libosti kombinovat vystavované hookAPI a takto vytvářet 
+ znovupoužitelnou logiku která je snadná na použití, v komponentové struktuře nevytváří indirekci a je relativně 
+ snadná na pochopení. Pojďme tedy napsat logiku pro počítání komponenty na souřadnicích za pomoci hooků. Dle konvence 
 use + co chceme dělat ho pojmenujeme useCursorCoordinates.
 ```typescript
-function useCursorCoordinates(ref) {
-  const [positionX, setPositionX] = React.useState(0);
-  const [positionY, setPositionY] = React.useState(0);
+function useCursorCoordinates(ref?: HTMLElement) {
+    const [positionX, setPositionX] = b.useState(0);
+    const [positionY, setPositionY] = b.useState(0);
+    const [offsetX, setOffsetX] = b.useState(0);
+    const [offsetY, setOffsetY] = b.useState(0);
 
-  React.useEffect(
-    () => {
-      const handler = (event: MouseEvent) => {
-        setPositionX(event.clientX);
-        setPositionY(event.clientY);
-      }
-      if (ref.current) {
-        ref.current.addEventListener("mousemove", handler);
-        return () => ref.current.removeEventListener("mousemove", handler);
-      }
-      return null;
-    },
-    [ref.current]
-  );
+    b.useLayoutEffect(() => {
+        if (ref) {
+            const bounding = ref.getBoundingClientRect();
+            setOffsetX(bounding.left);
+            setOffsetY(bounding.top);
+        }
+    }, [ref]);
 
-  return [positionX, positionY];
+    b.useEffect(
+        () => {
+            const handler = (event: MouseEvent) => {
+                setPositionX(event.clientX - offsetX);
+                setPositionY(event.clientY - offsetY);
+            };
+            if (ref) {
+                ref.addEventListener("mousemove", handler, true);
+                return () => ref.removeEventListener("mousemove", handler);
+            }
+            return null;
+        },
+        [ref, offsetX, offsetY]
+    );
+
+    return [positionX, positionY];
 }
 ```
- [codesandbox](https://codesandbox.io/s/r81162n6m). Jako vstupní parametr do našho hooku jde ref, což je mutable 
- reference, uvnitř které nalezneme DOM element v nemž chceme detekovat pozici kurzoru. Na této referenci nám záleží 
- uvnitř efekt funce, uvádíme ji tedy jako její závislost. V neposlední řadě po sobě nezapomeneme uklidit. Tím máme 
- hook definovaný a můžeme ho používat skrz aplikaci.
+Jako vstupní parametr do našeho hooku jde ref, což reference na DOM element v nemž chceme detekovat pozici kurzoru. Na této referenci nám záleží 
+ uvnitř efekt funce, uvádíme ji tedy jako její závislost, dále jako dependency uvádíme offset pro x a y souřadnici. V 
+ neposlední řadě po sobě nezapomeneme uklidit. Tím máme hook definovaný a můžeme ho používat v aplikaci. Ještě jedna 
+ tricky záležitost a to je bind eventu na konkrétní element. Je potřeba event řešit už v capturing fázi (poslední 
+ boolean flag), jinak k nám event ani nedobublá, jelikož bude zastaven bobrilem. Jediné co 
+ tedy budeme potřebovat pro inicializaci hooku je ref pojďme ho tedy získat a vyrenderovat div na pozici: 
  ```typescript
-function App() {
-  const ref = React.useRef();
-  const [x, y] = useCursorCoordinates(ref);
-  return (
-    <div
-      ref={ref}
-      style={{
-        border: "1px solid black",
-        width: "300px",
-        height: "300px",
-        position: "relative"
-      }}
-    >
-      <div style={{ position: "absolute", top: y, left: x }}>Text</div>
-    </div>
-  );
-}
-```
-Zajímavý je zde další použitý hook useRef, který nám poslouží jako zmiňovaná přepravka, do které si uložíme referenci
- na DOM element. Use ref tedy vytváří objekt, který nám poslouží pro předávání dat z jednoho renderu do dalšího.
- 
- ## A máme tu bobril a verzi 9.6. HOOK IT UP
- Než jsem tohle psaní stihl vydat přišel bobril s novou verzí ve které slibuje funkšční hooky useEffect a 
- useLayoutEffect. Takže teď již nic nebrání tomu zkusit napsat tu samou logiku jako v reactu i v bobrilu.
- 
- ```typescript
-export const UseState = b.component(class UseStateClazz extends b.Component<{}> {
+export const CustomHook = b.component(class CustomHookClazz extends b.Component<{}> {
     element?: HTMLElement;
     postInitDom(me: b.IBobrilCacheNode): void {
-        this.element = b.getDomNode(me) as HTMLElement
+        this.element = b.getDomNode(me) as HTMLElement;
     }
 
-    render() {
-        const [offsetTop, offsetLeft] = useElementOffset(this.element);
-        const [xPosition, setXPosition] = b.useState(0);
-        const [yPosition, setYPosition] = b.useState(0);
+    render(data: {}): b.IBobrilChildren {
+        const [x, y] = useCursorCoordinates(this.element);
+
         return (
-            <div style={{width: "300px", height: "300px", position: "relative"}} onMouseMove={(event: any) => {
-                setXPosition(event.x - offsetLeft);
-                setYPosition(event.y - offsetTop);
-            }}>
-                <div style={{position: "absolute", top: yPosition, left: xPosition}}>Rendered item</div>
+            <div style={WrapperStyles}>
+                <ComponentOnPosition x={x} y={y}>
+                    Wow i am using hook
+                </ComponentOnPosition>
             </div>
         )
     }
 });
 ```
+ 
 Bobril narozdíl od reactu umožňuje využití hooků v class komponentách. Což je zajímavé a class pojetí nám umožní 
-úplně vynechat useRef hook, který budeme moci suplovat právě classou. To je možné vidět právě na tomto příkladu, kde 
-si do class property element ukládáme aktualní referenci na element. Ten dostáváme v lifecycle metodě postInitDom.
-Vlastí definici hooku se budu věnovat v zápětí, takže useElementOffset přeskočím.
+úplně vynechat hook pojmenovaný useRef. Ten se používá pro vytvoření mutable přepravky, která bude dostupná v každém 
+volání render funkce. V našem případě jako mutable přepravku použijeme this classy a ukládáme si 
+aktualní referenci na element. Ten dostáváme v lifecycle metodě postInitDom.
 
-Tak a teď example s detekcí zmáčklého tlačítka. Přeskočím nefunčni řešení. Vycházejme z toho že bobril funguje stejně
- jako react. Definujme tedy vlastní hook, který bude umět detekovat zmáčklé tlačítko na window.
- ```typescript
-function useKeyPressed() {
-    const [pressedKey, setPressedKey] = b.useState("");
-    const [codeMode, setCodeMode] = b.useState(false);
-
-    b.useEffect(() => {
-        const handler = (event: KeyboardEvent) => {
-            if (event.key === " ") {
-                setCodeMode(!codeMode);
-            } else {
-                setPressedKey(codeMode ? event.code : event.key);
-            }
-        };
-        window.addEventListener("keypress", handler);
-        return () => window.removeEventListener("keypress", handler);
-    }, [codeMode]);
-
-    return pressedKey;
-}
-```
-
-A nyní komponenta využívající tento hook
-```typescript
-export const UseEffect = b.component(() => {
-    const pressedKey = useKeyPressed();
-
-    return (
-        <div>
-            {pressedKey}
-        </div>
-    )
-});
-```
 Jednoduchý zápis, jednoduchá znovupoužitelnost na základě zavolání funkce. 
  
  ## Závěr
- S možnostmi jež nám poskytuje bobril je ale nutné zacházet opatrně a jasně definovat oblastni ve kterých chceme 
+ S možnostmi jež nám poskytuje bobril je ale nutné zacházet opatrně a jasně definovat oblastni, ve kterých chceme 
  používat který přístup. Dovedu si dost dobře představit, že neopatrným mixováním hooků s class pojetím definice 
  komponenty zaneseme do kódu nadbytečnou logiku, která v konečném důsledku bude těžko uchopitelná a bude bránit 
  čitelnosti kódu.
