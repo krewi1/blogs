@@ -265,10 +265,9 @@ již byla promisa resolvnutá a vpřípadě že ano, renderuje komponentu které
  
  ## Hooks
  
- ##DISLCLAIMER
- S bobril pojetím hooku jsem ještě nenapsal nic velkého. Budu vycházet ze zkušeností nasbíraných v reactu. Nejsem si 
- tedy úplně jistý, že všechny zde prezentované examply budou napsané ideálně bobril způsobem. V případě, že znáte 
- lepší řešení neváhejte napsat a prodiskutujeme to.
+ ## DISLCLAIMER
+ Bobril releasnul hooky teprve před pár dny. Vycházím ze zkušeností nasbíraných v reactu. Možná některé příklady 
+ nejsou napsané ideálně. Kdokoliv by měl improvement prosím neváhejte nad pull requestem.
  
  
  ## Představení hooků
