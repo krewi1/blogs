@@ -1,6 +1,6 @@
 # Přístupy ke znovupoužitelnosti komponent
 Holahou, holahou, holahou přátelé. Jak lépe začít dokument o zbavování se repetitivnosti než právě 
-repetitivností. :)
+opakováním se. :)
 
 ## DRY koncept
 DRY je acronym pro 3 anglická slovíčka DONT REPEAT YOURSELF, tedy NEOPAKUJ SE. Což se lehce řekne, nicméně najít 
