@@ -4,7 +4,7 @@ repetitivností. :)
 
 ## DRY koncept
 DRY je acronym pro 3 anglická slovíčka DONT REPEAT YOURSELF, tedy NEOPAKUJ SE. Což se lehce řekne, nicméně najít 
-vhodnou abstrakci za kterou budeme shovávat obecné řešení je kokikrát složité. A proto zde máme návrhové vzory, které problém s vymýšlením abstrakce řeší za nás a my
+vhodnou abstrakci za kterou budeme shovávat obecné řešení je kolikrát složité. A proto zde máme návrhové vzory, které problém s vymýšlením abstrakce řeší za nás a my
  na ně jen našroubujem problém. Konkrétně bych chtěl vypíchnout 3 možnosti jak pomocí kompozice sdílet kód.
  
  ## DISCLAIMER
@@ -261,7 +261,7 @@ export function hocEnhancer<T>(TempComponent: b.IComponentFactory<T>): b.ICompon
 ```
 Na příkladu je právě jedna taková komponenta, která na vstupu bere Promise, po jejímž splnění dostaneme data 
 generického typu, která očekává komponenta, kterou obalujeme. HOC componenta drží ve svém stavu informaci o tom zda 
-již byla promisa resolvnutá a vpřípadě že ano, renderuje komponentu, které posíla unwrapnutá data získaná z promisy. V
+již byla promisa resolvnutá a v případě že ano, renderuje komponentu, které posíla unwrapnutá data získaná z promisy. V
  případě, že na data stále čekáme, zobrazuje vysoce sofistikovaný loader. Vstupní data do HOC jsme tedy 
  transformovali na data, s kterými již vnitřní komponenta umí pracovat. Ta se následně může starat jen o to k čemu je 
  stvořena, tedy renderovat view na základě dat a neřešit asynchronnost v podobě promisy.
@@ -494,7 +494,7 @@ a následně ho předáme našemu custom hooku.
 Jednoduchý zápis, jednoduchá znovupoužitelnost na základě zavolání funkce. 
  
  ## Závěr
- S možnostmi jež nám poskytuje bobril je ale nutné zacházet opatrně a jasně definovat oblastni, ve kterých chceme 
+ S možnostmi jež nám poskytuje bobril je ale nutné zacházet opatrně a jasně definovat oblasti, ve kterých chceme 
  používat který přístup. Dovedu si dost dobře představit, že neopatrným mixováním hooků s class pojetím definice 
  komponenty zaneseme do kódu nadbytečnou logiku, která v konečném důsledku bude těžko uchopitelná a bude bránit 
  čitelnosti kódu.
