@@ -18,32 +18,63 @@ Implementace takovéhoto návrhového vzoru je jednoduchá, vytvoříme komponen
  případě: Potřebujeme detekovat pozici kurzoru uvnitř elementu. Naivní implementace je poměrně přímočará.
  
 ```typescript
-class NaiveCursorDetect extends b.Component<{}> {
+export class NaiveCursorDetectComponent extends b.Component<{}> {
     position: Position;
+    offset: OffsetInfo;
 
     constructor() {
         super();
         this.position = {
             x: 0,
             y: 0
-        }
+        };
+        this.offset = {
+            x: 0,
+            y: 0,
+            maxX: 0,
+            maxY: 0
+        };
+    }
+
+    postInitDom(me: b.IBobrilCacheNode): void {
+        const element = b.getDomNode(me) as HTMLElement;
+        const bounding = element.getBoundingClientRect();
+        this.offset = {
+            x: bounding.left,
+            y: bounding.top,
+            maxX: bounding.width,
+            maxY: bounding.height,
+        };
+        this.recalculatePosition(this.position.x, this.position.y);
+        b.invalidate(this);
     }
 
     onMouseMove(event: b.IBobrilMouseEvent): b.GenericEventResult {
         const {x, y} = event;
-        this.position = {
-            x,
-            y
-        };
-        b.invalidate(this);
+
+        this.recalculatePosition(x, y);
         return b.EventResult.HandledPreventDefault;
     }
 
+    private recalculatePosition(x: number, y: number) {
+        const {maxY, maxX, x: offsetX, y: offsetY} = this.offset;
+
+        this.position = {
+            x: normalizeCoords(maxX, x - offsetX),
+            y : normalizeCoords(maxY, y - offsetY)
+        };
+        b.invalidate(this);
+    }
+
     render(data: {}): b.IBobrilChildren {
+        const {x, y} = this.position;
         return (
-            <div style={{width: "500px", height: "500px", position: "relative"}}>
-                {this.position.x}
-                {this.position.y}
+            <div>
+                <h2>Naive cursor detection</h2>
+                <div style={WrapperStyles}>
+                    <div>x: {x}</div>
+                    <div>y: {y}</div>
+                </div>
             </div>
         )
     }
@@ -54,30 +85,33 @@ Tím máme vytvořenou komponentu která je schopna renderovat pozici cursoru uv
 přijímají pozici na které se uvnitř svého parenta nacházejí. Easy peasy. Definujeme tedy nejdříve komponentu, která 
 se dokáže pozicovat v rámci parenta.
 ````typescript
-    export function ComponentOnPosition(data: Position, children: b.IBobrilChildren) {
-        return (
-            b.styledDiv(children, {
-                position: "absolute",
-                top: data.y,
-                left: data.x
-            })
-        )
-    }
+export function ComponentOnPosition(data: Position, children: b.IBobrilChildren) {
+    return (
+        b.styledDiv(children, {
+            position: "absolute",
+            top: data.y,
+            left: data.x
+        })
+    )
+}
 ````
 Jednoduchá komponenta přijímající pozici jako svůj parametr. A teď upravíme render funkci obalovací komponenty
 ```typescript
-    render(data: {}): b.IBobrilChildren {
-            return (
-               <div style={{width: "500px", height: "500px"}}>
-                   <ComponentOnPosition x={this.position.x} y={this.position.y} >
-                       Victim
-                   </ComponentOnPosition>
-                   <ComponentOnPosition x={this.position.x - 10} y={this.position.y - 10} >
-                       Stalker
-                   </ComponentOnPosition>
-               </div>
-            )
-        }
+render(data: {}): b.IBobrilChildren {
+    const {x, y} = this.position;
+    return (
+        <>
+            <div style={WrapperStyles}>
+                <ComponentOnPosition x={x} y={y} >
+                    Victim
+                </ComponentOnPosition>
+                <ComponentOnPosition x={x - 10} y={y - 10} >
+                    Stalker
+                </ComponentOnPosition>
+            </div>
+        </>
+    )
+}
 ```
 A je to. Renderujeme oběť a stalkera na základě pozice cursoru. Naše skvělá komponenta běží týden a přijde za námi 
 nadřízený s tím, že nemáme strašit malé děti a udělat stejnou verzi, která bude mít PEGI12. Oukej šéfe není problem, 
@@ -94,30 +128,57 @@ export interface IData {
     render: (position: Position) => b.IBobrilChildren;
 }
 
-class DynamicCursorDetect extends b.Component<IData> {
+export class DynamicCursorDetectComponent extends b.Component<IData> {
     position: Position;
+    offset: OffsetInfo;
 
     constructor() {
         super();
         this.position = {
             x: 0,
             y: 0
-        }
+        };
+        this.offset = {
+            x: 0,
+            y: 0,
+            maxX: 0,
+            maxY: 0
+        };
+    }
+
+    postInitDom(me: b.IBobrilCacheNode): void {
+        const element = b.getDomNode(me) as HTMLElement;
+        const bounding = element.getBoundingClientRect();
+        this.offset = {
+            x: bounding.left,
+            y: bounding.top,
+            maxX: bounding.width,
+            maxY: bounding.height,
+        };
+        this.recalculatePosition(this.position.x, this.position.y);
+        b.invalidate(this);
     }
 
     onMouseMove(event: b.IBobrilMouseEvent): b.GenericEventResult {
         const {x, y} = event;
+
+        this.recalculatePosition(x, y);
+        return b.EventResult.HandledPreventDefault;
+    }
+
+    private recalculatePosition(x: number, y: number) {
+        const {maxY, maxX, x: offsetX, y: offsetY} = this.offset;
+
         this.position = {
-            x,
-            y
+            x: normalizeCoords(maxX, x - offsetX),
+            y : normalizeCoords(maxY, y - offsetY)
         };
         b.invalidate(this);
-        return b.EventResult.HandledPreventDefault;
     }
 
     render(data): b.IBobrilChildren {
         return (
-            <div style={{width: "500px", height: "500px"}}>
+            <div style={WrapperStyles}>
                 {data.render(this.position)}
             </div>
         )
@@ -143,7 +204,7 @@ Tento komponentový návrhový vzor je už lehce složitější na uchopení. Je
  komponentou. 
  ```typescript
 export function hocDetectCursor<T extends Position>(Component: b.IComponentFactory<T>): b.IComponentFactory<{}> {
-    return b.component(class HocDetectInParent extends b.Component<{}> {
+    return class HocDetectInParent extends b.Component<{}> {
         render() {
             return (
                 <HOC>
@@ -161,8 +222,8 @@ Jak je vidět z příkladu vystavujeme funkci, která přijímá původní kompo
  komponenty. Napíšeme tedy komponentu, která bude schopna toto řešit.
  
 ```typescript
-export function hocDetectCursor<T extends Position>(TempComponent: b.IComponentFactory<T>): b.IComponentFactory<{}> {
-    return b.component(class HocDetectInParent extends b.Component<{}> {
+export function hocDetectCursor<T extends Position>(Component: b.IComponentFactory<T>) {
+    return class HocDetectInParent extends b.Component<WithoutPosition<T>> {
         position: Position;
         offset: OffsetInfo;
 
@@ -198,7 +259,7 @@ export function hocDetectCursor<T extends Position>(TempComponent: b.IComponentF
             return b.EventResult.HandledPreventDefault;
         }
 
-        private recalculatePosition(x: number, y: number) {
+        recalculatePosition(x: number, y: number) {
             const {maxY, maxX, x: offsetX, y: offsetY} = this.offset;
 
             this.position = {
@@ -212,13 +273,13 @@ export function hocDetectCursor<T extends Position>(TempComponent: b.IComponentF
             const {x, y} = this.position;
             return (
                 <div style={{width: "100%", height: "100%"}}>
-                    <Component x={x} y={y}>
+                    <Component x={x} y={y} {...data}>
                         {data.children}
                     </Component>
                 </div>
             )
         }
-    })
+    }
 }
 ```
 Napsali jsme injectorHoc, který spočítá pozici componenty v parentu a následně ji injectuje dovniř obalované komponenty.
@@ -227,8 +288,8 @@ Druhý typ hoc component řeší lehce odlišné problémy. Konrétně doplněn�
 případně se může starat o transformaci dat z vstupních do HOC na výstupní do vnitřní komponenty.
 
 ```typescript
-export function hocEnhancer<T>(TempComponent: b.IComponentFactory<T>): b.IComponentFactory<ComponentData<T>> {
-    return b.component(class HocDetectInParent extends b.Component<ComponentData<T>> {
+export function hocEnhancer<T>(Component: b.IComponentFactory<T>) {
+    return class HocDetectInParent extends b.Component<ComponentData<T>> {
         loading: boolean;
         loadedData: T | null;
 
@@ -248,15 +309,17 @@ export function hocEnhancer<T>(TempComponent: b.IComponentFactory<T>): b.ICompon
             b.invalidate(this);
         }
         render() {
-            const Component = TempComponent as any;
             if (this.loading) {
                 return <div>Loading...</div>
             }
             return (
-                <Component {...this.loadedData}/>
+                <div>
+                    <h2>HOC Enhancer</h2>
+                    <Component {...this.loadedData}/>
+                </div>
             )
         }
-    })
+    }
 }
 ```
 Na příkladu je právě jedna taková komponenta, která na vstupu bere Promise, po jejímž splnění dostaneme data 
@@ -280,7 +343,7 @@ Zatím jsme si představili 2 návrhové vzory, které se svým přístupem liš
  ## useState
  Chceme mít stav uvnitř funkionální komponenty, případně stav zafixovaný uvnitř render funkce bez nutnosti do toho zatahovat classu? Není problém.
 ```javascript 1.8
-export const UseStateHook = b.component(() => {
+export const UseStateHook = () => {
   const [xPosition, setXPosition] = b.useState(0);
   const [yPosition, setYPosition] = b.useState(0);
 
@@ -297,7 +360,7 @@ export const UseStateHook = b.component(() => {
       </div>
     </div>
   )
-});
+};
 ```
 V podstatě asi není nic moc co vysvětlovat. Bobril vyvoří v paměti 
 místo, do kterého ukládá informace, které se vážou k render funkci této komponenty. V každém jejím dalším renderu jsou 
@@ -311,22 +374,22 @@ useLayoutEffect. S ní opatrně neb jelikož je synchronní dokáže zablokovat 
 rozhraní, tím vyvolat nevoli na straně uživatele a to přeci nechceme :)
 
 ```typescript
-export const UseEffect: b.component(() => {
-  const [pressedKey, setPressedKey] = b.useState("");
-  b.useEffect(() => {
-    console.log("binding will happen");
-    const handler = (event: KeyboardEvent) => setPressedKey(event.key);
-    window.addEventListener("keypress", handler);
-    return () => window.removeEventListener("keypress", handler);
-  });
+export const UseEffect = () => {
+    const [pressedKey, setPressedKey] = b.useState("");
+    b.useEffect(() => {
+        console.log("binding will happen");
+        const handler = (event: KeyboardEvent) => setPressedKey(event.key);
+        window.addEventListener("keypress", handler, true);
+        return () => window.removeEventListener("keypress", handler);
+    });
 
-  return (
-    <div>
-      <div>Focus browser and start typing</div>
-      {pressedKey}
-    </div>
-  )
-});
+    return (
+        <div>
+            <div>Focus browser and start typing</div>
+            <pre>{pressedKey} </pre>
+        </div>
+    )
+};
 ```
 Funkční řešení výpisu zmáčknuté klávesy. Jelikož bindíme event je dobrá zvyklost si po sobě také uklidit. K tomu slouží 
 návratová hodnota funkce deklarované uvnitř useEffectu. Jak jsme již zkonstatovali, řešení je to funkční. Nicméně 
@@ -336,7 +399,7 @@ na které ma brát zřetel při rozhodování zda bude efekt funkci vykonávat z
 dependencí prázdný. Což znamená. Proveď jen a pouze při prvním renderu, pak už tě nemusí zajímat nic.
 
 ```typescript
-export const UseEffect = b.component(() => {
+export const UseEffect = () => {
   const [pressedKey, setPressedKey] = b.useState("");
   b.useEffect(() => {
     console.log("binding will happen");
@@ -351,14 +414,14 @@ export const UseEffect = b.component(() => {
       {pressedKey}
     </div>
   );
-});
+};
 ```
  Pokud se nyní koukneme do konzole tak ta je krásně čistá.
 
 Teď ale něco zajímavějšího. Pojďme definovat další mód pro náš handler na window, ve kterém začneme místo zmáčklé 
 klávesy vypisovat její kód. Mód budeme měnit za pomoci mezerníku. 
 ```typescript
-export const UseEffectNotWorking = b.component(() => {
+export const UseEffectNotWorking = () => {
   const [pressedKey, setPressedKey] = b.useState("");
   const [codeMode, setCodeMode] = b.useState(false);
   b.useEffect(() => {
@@ -378,7 +441,7 @@ export const UseEffectNotWorking = b.component(() => {
       {pressedKey}
     </div>
   )
-});
+};
 ```
 Poučeni z minulých nezdarů rovnou přidáváme binding jen a pouze v případě prvního renderu. Ono to ale nefunguje. 
 Odpověď na otázku proč to nefunguje najdeme v javascriptu samotném. Konrétně za to mohou closury. Deklarace efekt 
@@ -388,10 +451,10 @@ vyhodnocen negativně. Zalhali jsme totiž useEffectu ohledně jeho závislostí
 codeMode. Přepíšeme tedy seznam závislostí.
 
 ```typescript
-export const UseEffectNotWorking = b.component(() => {
-  const [pressedKey, setPressedKey] = React.useState("");
-  const [codeMode, setCodeMode] = React.useState(false);
-  React.useEffect(
+export const UseEffectNotWorking = () => {
+  const [pressedKey, setPressedKey] = b.useState("");
+  const [codeMode, setCodeMode] = b.useState(false);
+  b.useEffect(
     () => {
       const handler = (event: KeyboardEvent) => {
         console.log("binding will happen");
@@ -413,7 +476,7 @@ export const UseEffectNotWorking = b.component(() => {
       {pressedKey}
     </div>
   );
-});
+};
 ```
 Vualá a vše funguje jak má. Když zkusíme zmáčknout mezerník 
 zjistíme, že funkce uvnitř effektu proběhla znovu, tedy došlo k přebindování funkce a tato nová funkce má už korektní 
@@ -466,7 +529,7 @@ Jako vstupní parametr do našeho hooku jde ref, což reference na DOM element v
   
 Jediné co budeme potřebovat pro inicializaci hooku je ref pojďme ho tedy získat a vyrenderovat div na pozici: 
  ```typescript
-export const CustomHook = b.component(class CustomHookClazz extends b.Component<{}> {
+export const CustomHook = class CustomHookClazz extends b.Component<{}> {
     element?: HTMLElement;
     postInitDom(me: b.IBobrilCacheNode): void {
         this.element = b.getDomNode(me) as HTMLElement;
@@ -483,7 +546,7 @@ export const CustomHook = b.component(class CustomHookClazz extends b.Component<
             </div>
         )
     }
-});
+};
 ```
  
 Bobril narozdíl od reactu umožňuje využití hooků v class komponentách. Což je zajímavé a class pojetí nám umožní 
