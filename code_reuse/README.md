@@ -7,6 +7,8 @@ DRY je acronym pro 3 anglická slovíčka DONT REPEAT YOURSELF, tedy NEOPAKUJ SE
 vhodnou abstrakci za kterou budeme shovávat obecné řešení je kolikrát složité. A proto zde máme návrhové vzory, které problém s vymýšlením abstrakce řeší za nás a my
  na ně jen našroubujem problém. Konkrétně bych chtěl vypíchnout 3 možnosti jak pomocí kompozice sdílet kód.
  
+Kód zde prezentovaný najdete v github repu: [https://github.com/krewi1/bobril-examples](https://github.com/krewi1/bobril-examples)
+ 
  ## DISCLAIMER
  Celý tento článek je založen na API bobrilu 9.6+. Neb v něm přichází bobril s podporou hooků, za pomoci kterých už 
  jsme schopni napsat většinu logiky. Pro plné pochopení doporučuji otevřít example projekt a konkrétní implementace 
