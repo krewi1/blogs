@@ -17,12 +17,14 @@ export function Sentence(data: ISentenceData) {
     return <div style={data.style}>{data.children}</div>;
 }
 ```
-Komponenta přijímá textový obsah a zároveň styl kterým bude tento obsah zobrazovat. Vycházíme li z premisy, že pokud možno veškerý aplikační stav 
-chceme udržovat na nejvrchnější úrovni a Sentence komponenta je list celého komponentového stromu, pak to pro nás v současném stavu znamená, že 
-informace o stavu budeme posílat skrz všechny komponenty proto aby nakonec dobublaly až na list. Představme si aplikaci, která bude mít tuto komponentovou strukturu:
+Komponenta přijímá textový obsah a zároveň styl, kterým bude tento obsah zobrazovat. Vycházíme-li ze situace, že pokud
+ možno veškerý aplikační stav chceme udržovat na nejvrchnější úrovni a Sentence komponenta je list celého komponentového stromu, pak to pro nás v současném stavu znamená, že 
+informace o stavu budeme posílat skrz všechny komponenty proto, aby se nakonec dostali až na list, kde budou následně
+ použité. Představme si aplikaci, která bude mít tuto komponentovou strukturu:
 Aplikace(stav) => Section => Paragraph => Sentence. Stav stylů bude tedy muset bublat skrz Sekci a Paragraf, aby se dostal až na Sentence komponetu.
 Jak tedy zajistit to aby jsme informaci nemuseli předávat takto a zároveň zůstala definovaná na aplikační ůrovni? Definovováním kontextu. Context byl v bobrilu označován 
-dřív jako cfg, v posledních patchích se bobril přiklání k terminologii zavedené Reactem. Tedy k označení kontext
+dřív jako cfg. V posledních patchích se bobril ale přiklání k terminologii zavedené Reactem. Tedy k označení Context
+(kontext)
 
 ## Implementace kontextu
 Pojďme definovat kontext:
@@ -40,14 +42,15 @@ function Sentence(this: b.IBobrilCtx, data: ISentenceData) {
     return <div style={style}>{data.children}</div>;
 }
 ```
-Jednoduché a prosté. Definujeme StyleContext a tuto globálně definovanou hodnotu za pomici funkce useContext dostaneme. Dobrá práce. Nyní si představme scénář,
-ve kterém máme Paragrafů definovaných více a Sentence komponenty v každém Paragrafu chceme stylovat jiným způsobem. První řešení co každého jistě napadne je
-definice dalšího kontextu skrze nové volání createContext. To by šlo, ale tímto by jsme do aplikace zanášeli redundantní kontextové definice. Pojďme to tedy zkusit
-z jiného úhlu a na vytvořený kontext srkze createContext koukat pouze jako na nadefinovaný kontrakt, který bude naplněn komponentou v komponentové struktuře. To se těžko představuje, tak si to pojďme raději ukázat na příkladu.
-Kontrakt již máme definovaný skrze StyleContext. Nyní tento kontrakt poďme naplnit.
+Jednoduché a prosté. Definujeme StyleContext a tuto globálně definovanou hodnotu za pomoci hooku useContext dostaneme. Nyní si představme scénář,
+ve kterém máme Paragrafů definovaných více a Sentence komponenty v každém Paragrafu chceme stylovat jiným způsobem. 
+První řešení, co každého jistě napadne je definice dalšího kontextu skrze nové volání createContext. To by šlo, ale 
+tímto by jsme do aplikace zanášeli redundantní kontextové definice. Pojďme to tedy zkusit z jiného úhlu a na 
+vytvořený kontext srkze createContext koukat pouze jako na nadefinovaný kontrakt, který bude naplněn komponentou v komponentové struktuře. To se těžko představuje, tak si to pojďme raději ukázat na příkladu.
+Kontrakt již máme definovaný v StyleContext. Nyní tento kontrakt poďme naplnit.
 ```typescript
 function ParagraphWithYellowStyleContext(this: b.IBobrilCtx) {
-    b.useProvideContext(StyleContext, {
+    b.useProvideContext(StyleContext, { //poskutujeme kontextové hodnoty pro StyleContext kontrakt
         color: "yellow",
         padding: "5px"
     });
@@ -60,7 +63,8 @@ function ParagraphWithYellowStyleContext(this: b.IBobrilCtx) {
     )
 }
 ```
-Na ůrovni renderu komponenty poskytneme context všem potomkům skrze funkci useProvideContext. Sentence tedy v tomto případě dostane kontextovou informaci, že se má renderovat žlutě.
+Na úrovni renderu komponenty poskytneme context všem potomkům skrze funkci useProvideContext. Sentence tedy v tomto 
+případě dostane kontextovou informaci, že se má renderovat žlutě.
 Ukázka více přetížení: 
 ```typescript
 function Section() {
@@ -75,9 +79,10 @@ function Section() {
 ```
 
 ## Improvements
-Vše funguje jak má a my jsme úspěšně obešli bublání dat skrze data komponent. Co se mě osobně ale nelíbí je vytržení kontextového providera z deklarace
-komponentové struktury do funčního volání. Pro vyřešní tohoto problému navrhuji jednoduchou obalovací komponentu definovanou například ve stejném modulu jako definujeme
-context skrze volání createContext.
+Vše funguje jak má a my jsme úspěšně obešli předávání dat skrze data komponent. Co se mě osobně ale nelíbí, je vytržení 
+kontextového providera z deklarace komponentové struktury do funčního volání. Pro vyřešní tohoto problému navrhuji 
+jednoduchou obalovací komponentu definovanou například ve stejném modulu jako definujeme context skrze volání 
+createContext.
 
 Nejdříve extrahuji kontrakt definovaný createContextem do interfacu a následně definuji komponentu, která bude přijímat objekt splňující tento interface v datech. Dále bude v datech přijímat
 children propertu. Tedy bude podporovat komponentovou kompozici.
@@ -119,8 +124,9 @@ function Section() {
 }
 ```
 
-V případě konzumu by jsme stejně tak mohli volání funkce useContext zabalit do komponenty, ale v to mi naopak přijde jako nadbytečná definice zjevného.
-Nicméně pro úplnost a hlavně pro, v podstatě 1:1 podobu s reactem si poďme ukázat i obalovací komponentu pro Consume kontextu.
+V případě konzumu by jsme stejně tak mohli volání funkce useContext zabalit do komponenty, ale to mi naopak přijde jako nadbytečná definice zjevného.
+Nicméně pro úplnost a hlavně pro, v podstatě 1:1 podobu s reactem si pojďme ukázat i obalovací komponentu pro Consume
+ kontextu.
 ```typescript
 export interface IConsumerData {
     render: (context: IStyleContext) => b.IBobrilNode;
