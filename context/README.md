@@ -1,7 +1,7 @@
 # Context
 Architektura aplikace využívající komponenty je poměrně přímočará. V horních vrstách komponentové struktury chceme udržovat stav,
  který bude následně zobrazován za pomoci bezstavových, znovupoužitelných komponent. Do těch pouze posíláme data které chceme nechat zobrazit.
-Příklad komponenty která bude zobrazovat textový obsah:
+Příklad komponenty která bude zobrazovat textový obsah: (Jako vždy najdete ukázky v [git repu](https://github.com/krewi1/bobril-examples))
 ```typescript
 interface IStyleData {
     color: string;
