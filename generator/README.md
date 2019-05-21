@@ -370,4 +370,8 @@ Uvnitř promisu se pak děje skutečná práce. Definujeme funkci iterate, kter�
  a v případě, že iterátor ještě nebyl ukončen počká, až se resolve vrácený promise. V případě, že je iterátor hotový 
  resolvuje navrácený promise.
  
+Na internetu najdete k tématu generátorů spoustu článků. Pokud to někoho bude zajímat doporučuji zejména: 
+[článek1](https://davidwalsh.name/es6-generators)
+[článek2](https://medium.com/javascript-scene/the-hidden-power-of-es6-generators-observable-async-flow-control-cfa4c7f31435)
+ 
  Tak a to je vše. CYA zas někdy příště.
