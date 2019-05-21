@@ -1,22 +1,23 @@
 # Generátory a iterátory
 Dneska to bude trochu z jiného soudku, protože opustíme ryze frontendovou doménu a podívám se na iterátory a 
-generátory v ES. Frontendovou problematiku se do toho ale budu snažit zakomponovat, tak uvidíme co z toho nakonec 
-vyleze. Teď už s chutí do toho.
+generátory v ES.
 
 ## DISLAIMER
-Generátory josu novinka i pro mě a tenhle článeček bude můj prostor jak je lépe pochopit a zároveň aby to učení 
-nepadlo vniveč to někde sepsat.
+Generátory josu novinka i pro mě a tenhle článeček bude můj prostor jak je lépe pochopit.
 
 ## Iterátory
 ### Co je iterátor?
 Iterátor je obecný koncept implementovaný ve většine programovacích jazyků a slouží k procházení prvků bez znalosti 
-jejich konkrétní implementace. Po získání iterátoru z datové struktury procházíme prvky za pomoci volání getNext/next
+jejich konkrétní implementace. Po získání iterátoru z objektu procházíme prvky za pomoci volání getNext/next
  metody.
  
 Do javascriptu přibyly iterátory ve specifikaci es2015, tedy v es6. Podpora ze strany browserů tedy vypadá přívětivě, 
 bohužel ne v IEčku, ale pro teď si odpustíme o iečku vůbec přemýšlet. Poslední věc co je potřeba zmínit je rozdíl 
-mezi iterable objektem a iterátorem. Iterable objekt je objekt z něhož lze získat iterátor. A iterátor je objekt 
-sloužící k iterování nad objektem.
+mezi iterable objektem a iterátorem. Iterable objekt je objekt z něhož lze získat iterátor, tedy objekt, který 
+implementuje iterable protokol
+
+## Iterable protokol
+Definuje způsob jakým bude vrácena sekvence hodnot, ať už konečná nebo nekonečná.
 
 ### Kód
 ```typescript
@@ -340,3 +341,5 @@ ale pro větší podobnost s funkcionálními knihovnami jsem použil první zm�
 Uvnitř promisu se děje skutečná práce. Definujeme funkci iterate, která v každém kroku vezme položku z generátoru a v
  případě, že iterátor ještě nebyl ukončen počká, až se resolve vrácený promise. V případě, že je iterátor hotový 
  resolvuje navrácený promise.
+ 
+ Tak a to je vše. CYA zas někdy příště.
