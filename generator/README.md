@@ -2,9 +2,6 @@
 Dneska to bude trochu z jiného soudku, protože opustíme ryze frontendovou doménu a podívám se na iterátory a 
 generátory v ES.
 
-## DISLAIMER
-Generátory josu novinka i pro mě a tenhle článeček bude můj prostor jak je lépe pochopit.
-
 ## Iterátory
 ### Co je iterátor?
 Iterátor je obecný koncept implementovaný ve většine programovacích jazyků a slouží k procházení prvků bez znalosti 
@@ -293,8 +290,6 @@ console.log(returning.return("ahoj")); // {value: "ahoj", done: true}
 ```
 
 Nakonec ještě jedna hříčka a to implementace nonblocking pipe funkce. 
-## Disslaimer
-Čisté moje řešení. Nápadům a názorům jsem otevřen.
 
 Teď už ale k implementaci. Budeme psát asynchronní api takže navenek vrátíme 
 promise a api bude vypadat takto:
