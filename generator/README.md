@@ -35,7 +35,7 @@ while(!done) {
     ({value, done} = gen.next());
 }
 ```
-Pakliže má objekt, pak o něm můžeme říct, že je iterovatelný. Toho pak lze
+Pakliže má objekt iterátor, pak o něm můžeme říct, že je iterovatelný. Toho pak lze
  využít a iterovatelné objekty pak procházet skrze for...of cyklus. For...of cyklus je ale jen jedna z mnoha featur 
  ecmascriptu které pracuje s iterable objekty. Konkrétně iterable objekty můžeme využít pro: Array.from(), Spread,
  operator (...), Constructors of Maps and Sets, Promise.all(), Promise.race()
@@ -273,7 +273,7 @@ Nakonec ještě jedna hříčka a to implementace nonblocking pipe funkce.
 Teď už ale k implementaci. Budeme psát asynchronní api takže navenek vrátíme 
 promise a api bude vypadat takto:
  ```typescript
-const valPromise = nonBlockEvaluate(pipe(multiplyByThree, addTwo))(3);
+const valPromise = nonBlockingPipe(multiplyByThree, addTwo)(3);
 
 const intervalid = setInterval(
   () => console.log("not blocking", new Date().getTime()),
@@ -300,7 +300,8 @@ nakonec z toho vytvoříme generátor, který bude yieldovat právě ony promisy
 
 Máme generátor a ještě potřebujeme funkci která s tímto generátorem bude umět pracovat
 ```typescript
-function nonBlockEvaluate(genDef) {
+function nonBlockingPipe(...functions) {
+	const genDef = genPipe(...functions);
 	return function evaluate(val) {
 		return new Promise(function prom(resolve) {
 			const gen = genDef();
@@ -309,7 +310,7 @@ function nonBlockEvaluate(genDef) {
 				if (item.done) {
 					resolve(value);
 				} else {
-					item.value(value).then(val => iterate(val));
+					item.value(value).then(iterate);
 				}
 				console.log("iteration done in: ", new Date().getTime());
 			}
@@ -318,10 +319,11 @@ function nonBlockEvaluate(genDef) {
 	};
 }
 ```
-Funkce přijímá generátor jako parametr a vrací funkci, kkterá přijíma vstupní hodnotu do pipeliny. Tenhle zápis je 
-ekvivalentní s 
+Funkce přijímá n funkcí které budou prováděny v pořadí v jakém byly předány
+Tenhle zápis je ekvivalentní s 
 ```typescript
-function nonBlockEvaluate(genDef, val) {
+function nonBlockingPipe(val, ...functions) {
+	const genDef = genPipe(...functions);
 	return new Promise(function prom(resolve) {
 		const gen = genDef();
 		function iterate(value) {
@@ -337,9 +339,9 @@ function nonBlockEvaluate(genDef, val) {
 	});
 }
 ```
-ale pro větší podobnost s funkcionálními knihovnami jsem použil první zmíněný. Jak api naznačuje vracíme promise. 
-Uvnitř promisu se děje skutečná práce. Definujeme funkci iterate, která v každém kroku vezme položku z generátoru a v
- případě, že iterátor ještě nebyl ukončen počká, až se resolve vrácený promise. V případě, že je iterátor hotový 
+ale pro větší podobnost s funkcionálními knihovnami bych se přikláněl k prvnímu zápisu. Jak api naznačuje vracíme promise. 
+Uvnitř promisu se pak děje skutečná práce. Definujeme funkci iterate, která v každém kroku vezme položku z iterátoru
+ a v případě, že iterátor ještě nebyl ukončen počká, až se resolve vrácený promise. V případě, že je iterátor hotový 
  resolvuje navrácený promise.
  
  Tak a to je vše. CYA zas někdy příště.
