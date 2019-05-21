@@ -11,13 +11,10 @@ Iterátor je obecný koncept implementovaný ve většine programovacích jazyk�
 jejich konkrétní implementace. Po získání iterátoru z objektu procházíme prvky za pomoci volání getNext/next
  metody.
  
-Do javascriptu přibyly iterátory ve specifikaci es2015, tedy v es6. Podpora ze strany browserů tedy vypadá přívětivě, 
-bohužel ne v IEčku, ale pro teď si odpustíme o iečku vůbec přemýšlet. Poslední věc co je potřeba zmínit je rozdíl 
-mezi iterable objektem a iterátorem. Iterable objekt je objekt z něhož lze získat iterátor, tedy objekt, který 
-implementuje iterable protokol
-
-## Iterable protokol
-Definuje způsob jakým bude vrácena sekvence hodnot, ať už konečná nebo nekonečná.
+Do javascriptu přibyly iterátory ve specifikaci es2015, tedy v es6. A protože tahle specifikace už má vousy vypadá podpora ze
+ strany browserů tedy vypadá přívětivě, bohužel ne v IEčku, ale pro teď si odpustíme o iečku vůbec přemýšlet. Poslední věc co je potřeba zmínit je rozdíl 
+mezi iterable objektem a iterátorem. Iterable objekt je objekt z něhož lze získat iterátor. Iterátor je objekt který implementuje iterable protokol
+, což je specifikace toho jak bude navrácena sekvenve hodnot ať už konečná, tak nekonečná.
 
 ### Kód
 ```typescript
@@ -37,7 +34,7 @@ while(!done) {
 ```
 Pakliže má objekt iterátor, pak o něm můžeme říct, že je iterovatelný. Toho pak lze
  využít a iterovatelné objekty pak procházet skrze for...of cyklus. For...of cyklus je ale jen jedna z mnoha featur 
- ecmascriptu které pracuje s iterable objekty. Konkrétně iterable objekty můžeme využít pro: Array.from(), Spread,
+ ecmascriptu, které pracuje s iterable objekty. Konkrétně iterable objekty můžeme využít pro: Array.from(), Spread,
  operator (...), Constructors of Maps and Sets, Promise.all(), Promise.race()
  ```typescript
 const copy = [...test];
@@ -48,7 +45,7 @@ for (let item of test) {
   console.log(item);
 }
 ```
-U objektů, u kterých by člověk očekával že se bude iterovat nám javascript podává pomocnou ruku a nabízí build in 
+U objektů, u kterých by člověk očekával, že se budou iterovat, nám javascript podává pomocnou ruku a nabízí build in 
 iterátory. Jak je konec konců vidět na příkladu, kde jsme použili vestavěný iterátor na poli. Vestavěný iterátor je 
 možné najít na: String, Array, TypedArray, Map a Set typech. Na instanci konkétního typu je k dostání skrze Symbol
 .iterator.
@@ -95,8 +92,8 @@ for (let name of names) {
   console.log(item);
 }
 ```
-Aby jsem mohl téma iterátorů uzavřít. Je nutné pokrýt ještě nepovinné funkce iterátoru, kterými jsou return a throw. 
-Return slouží k uklizení v případě, že iterace byla ukončena před jejím dokončením. Např:
+Aby jsem mohl téma iterátorů uzavřít zmíním ještě nepovinné funkci iterátoru, kterou je return. 
+Return slouží k reakci v případě, že iterace byla ukončena před jejím dokončením. Např:
 ```typescript
 const iterator = {
     next() {
@@ -127,10 +124,10 @@ klíčovým slovem function a to ať už hned za, případně před jménem funk
  function *createGen(){}
 ```
 jsou synonyma. A jak to tak už bývá, co člověk to jiný názor na to který zápis je správný. Takže moje rada vybrat 
-jeden způsob a pak už jen držet konvenci. Bylo řečeno, že generátor implementuje iterable protokol. Pro vrácení 
-hodnoty po zavolání next funkce slouží nové klíčové slovo yield. K čemu je ale takový generátor dobrý a proč vznikl? 
-Za pomici generátoru můžeme pozastavit výkon funkce až do dalšího zavolání next funkce. Pozastavení výkonu se děje 
-právě na klíčovém slově yield. Na jednoduchém příkladě generátoru identifikátorů.
+jeden způsob a pak už jen držet konvence. K čemu je ale takový generátor dobrý a proč vznikl? 
+Za pomici generátoru můžeme pozastavit výkon funkce až do dalšího zavolání next funkce. Pozastavení výkonu se děje na klíčovém slově yield.
+Yield si lze představit jako return next funkce s tím, že automaticky přidává informaci o tom, že iterátor získaný z generátoru ještě neskončil.
+ Na jednoduchém příkladě generátoru identifikátorů.
 ```typescript
 function *idGenerator() {
     let id = 0;
@@ -177,6 +174,36 @@ for (let id of generateId) {
     console.log(id); // 0 => 1
 }
 ```
+Dalším způsobem jak docílit finish stavu je explicitní return z generátor funkce.
+```typescript
+function *idGeneratorLimited() {
+    let id = 0;
+    while(id < 2) {
+        // yield value and stop until next call of next;
+        yield id++;
+    }
+    return id;
+}
+const generateId = idGeneratorLimited();
+// find first yield and get its value
+console.log(generateId.next()); // {value: 0, done: false}
+console.log(generateId.next()); // {value: 1, done: false}
+console.log(generateId.next()); // {value: 2, done: true}
+```
+Jak je vidět z příkladu při returnu z generátoru jeho iterátor vrátí done s hodnotou true, ale zároveň s tím vrátí hodnotu.
+Na to je třeba si dát pozor protože když si vyzkoušíme takto definovaný generátor proiterovat for...of loopem, případně použijeme
+ spread operátor zjistíme, že
+ postrádáme poslední prvek, což je trochu matoucí tak pozor na to.
+ ```typescript
+for (let value of generateId) {
+  console.log(value) // 0 => 1
+}
+console.log(generatedId.next());// {value: undefined, done: true}
+
+// spread version
+console.log(...generateId) // 0 => 1
+``` 
+
 Generátory lze kombinovat a delegovat výkon na další generátor
 ```typescript
 function *idGeneratorString() {
@@ -209,9 +236,8 @@ const names = {
 Iterátor deklarovaný generátorem deleguje svůj výkon build-in iterátoru pole. 
 
 Co je důležité ještě říct a zatím nebylo zmíněno tak to že generátory jsou obousměrné. To znamená, že kromě toho že 
-mohou yieldovat hodnoty ven, tak srkze parametr next hodnoty mohou přijímat hodnoty. Toho lze využít na řadě míst. 
-Doporučuji se kouknout třeba na libku co.js. Ještě před tím než byla oznámena async/await syntaxe co.js za pomoci 
-generátoru nabízela stejný synchronně vypadající zápis. Teď už ale ke konkrétnímu použití. Popovídáme si s window.
+mohou yieldovat hodnoty ven, tak srkze parametr next funkce mohou přijímat hodnoty. Toho lze využít na řadě míst.
+Konkrétnímu použití např pro popovídání si s window.
 ```typescript
 function *talk() {
   yield {type: "alert", question: "Ahoj"};
@@ -268,7 +294,7 @@ console.log(returning.return("ahoj")); // {value: "ahoj", done: true}
 
 Nakonec ještě jedna hříčka a to implementace nonblocking pipe funkce. 
 ## Disslaimer
-Čiste moje řešení. Nápadům a názorům jsem otevřen.
+Čisté moje řešení. Nápadům a názorům jsem otevřen.
 
 Teď už ale k implementaci. Budeme psát asynchronní api takže navenek vrátíme 
 promise a api bude vypadat takto:
