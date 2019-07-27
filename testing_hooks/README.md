@@ -456,4 +456,4 @@ V podstatě v tomto případě testujeme jen to, že bobril funguje tak jak má.
 Řešili by jste něco jinak? Něco není jasné? Nějaký zajímavý hook, se kterým by si tento tooling neporadil? Neváhejte se 
 ozvat. CYA guys
 
-PS.: hack [repo](https://github.com/krewi1/bobril-examples)
+PS.: hack [repo](https://github.com/krewi1/bobril-hook-testing)
