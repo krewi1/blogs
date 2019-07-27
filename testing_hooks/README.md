@@ -31,7 +31,7 @@ function Component() {
 ```
 Hodnota je ale nyní dostupná pouze uvnitř render funkce. Zavedeme tedy proměnnou mimo scope render funkce, do které 
 budeme hodnoty přiřazovat a následně expectovat a komponentu potřebujeme ještě nechat sestavit bobrilem. Init je zde 
-pro přidání root nodu a syncUpdate pro vynucení renderu.
+pro přidání root nodu a syncUpdate pro synchronní render.
 ```typescript jsx
  it("naive init", () => {
          let currentValue: ICounter;
@@ -46,22 +46,22 @@ pro přidání root nodu a syncUpdate pro vynucení renderu.
 ```
 Máme procházející test na první render. Co ale když chceme zavolat funkci poskytovanou hookem?
 ```typescript jsx
-    it("naive increment", () => {
-        let currentValue: ICounter;
-        function Component() {
-            currentValue = useCounter();
-            return <div>{currentValue.count}</div>
-        }
-        
-        b.init(() => <Component/>);
-        b.syncUpdate();
-        currentValue.increment();
-        expect(currentValue.count).toBe(1)
-    });
+it("naive increment", () => {
+    let currentValue: ICounter;
+    function Component() {
+        currentValue = useCounter();
+        return <div>{currentValue.count}</div>
+    }
+    
+    b.init(() => <Component/>);
+    b.syncUpdate();
+    currentValue.increment();
+    expect(currentValue.count).toBe(1)
+});
 ```
 Funkce se zavolala. Stav se změnil. Došlo k zavolání invalidatu. Nicméně hodnota poskytovaná counterem stále není 
 aktuální, neboť nedošlo k překreslení komponenty. To je naplánováno do budoucna, ale mi ho potřebujeme hned. Bobrilu 
-je tedy nutné po řící aby změny promítl hned skrze volání syncUpdate.
+je tedy nutné znovu řící o render
 
 ```typescript jsx
     it("naive increment", () => {
@@ -78,7 +78,8 @@ je tedy nutné po řící aby změny promítl hned skrze volání syncUpdate.
         expect(currentValue.count).toBe(1)
     });
 ```
-Uderne duo invalidate a syncUpdate se nam v budoucnu bude jeste hodit. Tak tato volani schovame za funkci pojmenovanou rerender. 
+Úderné duo invalidate a syncUpdate se  v budoucnu bude ještě hodit. Tak toto volání schovám za funkci pojmenovanou 
+rerender. 
 ```typescript jsx
 export function rerender() {
     b.invalidate();
@@ -90,6 +91,9 @@ export function rerender() {
 V každém testu se nám opakuje inicializace, definice komponenty samotné a volání syncUpdate. To by s přibývajícími 
 testy začlo nepříjemně narůstat a schovávalo by to pravý záměr testovacích metod. Nejdříve tedy generická funkce pro 
 inicializaci componenty a navrácení hodnoty hooku.
+
+Jelikož je prepare funkce definovaná mimo scope obou testů, musíme najít jinou cestu, jak do testu dostat hodnotu pro expectovani. Tou je navrácení referenční 
+hodnoty, která je updatovaná v každém renderu.
 ```typescript jsx
 function prepare() {
     let currentValue = {} as ICounter;
@@ -101,10 +105,6 @@ function prepare() {
     b.syncUpdate();
     return currentValue;
 }
-```
-Jelikož je prepare funkce definovaná mimo scope obou testů, musíme najít jinou cestu, jak do testu dostat hodnotu pro expectovani. Tou je navrácení referenční 
-hodnoty, která je updatovaná v každém renderu.
-```typescript jsx
 it("prepare init", () => {
     const currentValue = prepare();
     expect(currentValue.count).toBe(0);
@@ -119,8 +119,8 @@ it("prepare increment", () => {
 ```
 
 ## Složitější problémy
-Pokud má hook pouze takto závislost na stav. Řešení je přímočaré. Ale co když potřebujeme provádět side effekty nebo 
-operace s DOMem?
+Pokud má hook pouze takto závislost na stav. Řešení je přímočaré. Ale co když potřebujeme provádět side effekty v 
+podobě interakce s prosředím? Jako je například schedulování tásků.
 ```typescript jsx
 export function useInterval(callback: () => void, delay: number): void {
     const savedCallback = useRef<() => void>();
@@ -135,8 +135,8 @@ export function useInterval(callback: () => void, delay: number): void {
     }, [delay]);
 }
 ```
-První test, který nás napadne je zkontrolovat, že useInterval po specifikovaném intervalu opravdu zavolá poskytnutý 
-callback. Nejdříve definujme prepare funkci
+Co se testovatelnosti tohoto hooku týče, první test, který nás napadne, je zkontrolovat, že useInterval po 
+specifikovaném intervalu opravdu zavolá poskytnutý callback. Nejdříve definujme prepare funkci
 ```typescript jsx
 function prepareInterval(callback, time) {
     function Component() {
@@ -158,30 +158,12 @@ describe("useInterval prepare", () => {
         expect(cb).toHaveBeenCalled();
     });
 });
-```
- Další z věcí co zbývá dořešit je posun na časové ose. Jasmine poskytuje pro tyto případy helper objekt dosupný pod 
- jasmine.clock().
- ```typescript jsx
-describe("useInterval prepare", () => {
-    it("prepare init", () => {
-        let clock: jasmine.Clock;
-        clock = jasmine.clock();
-        clock.install();
-        const cb = jasmine.createSpy("callback");
-        prepareInterval(cb, 12);
-        
-        // after ms
-        clock.tick(13)ů
-        expect(cb).toHaveBeenCalled();
-        clock.uninstall();
-    });
-});
-```
 
-Nejříve zavedeme pomocný objekt pomocí volání install a na konci testu ho zase uklidíme. Posun pak probíha voláním 
-tick. Install a uninstall typicky přijdou do beforeEach a afterEach funkce. Vyřešil se jeden problém a vyskočil 
-na nás další. UseEffect funkce totiž není synchronní nicméně je vykonávána jakmile to bude možné. V bobrilu na 
-toto existuje pomocná funkce asap. Budeme tedy potřebovat tool který dokáže říct zda se již zavolal effekt uvnitř 
+```
+ Další z věcí co zbývá dořešit je posun na časové ose. O to se nám postárá jasmine se svýma helper funkceme které 
+ jsou k dostání po zavolání jasmine.Clock funkce viz: [documentace](https://jasmine.github.io/api/3.4/Clock.html). 
+ Vyřešil se jeden problém a vyskočil na nás další. UseEffect funkce totiž není synchronní. Je vykonávána jakmile to 
+ bude možné. V bobrilu na toto existuje pomocná funkce asap. Budeme tedy potřebovat tool který dokáže říct zda se již zavolal effekt uvnitř 
 komponenty. Effekt funkce využívá asap funkci. Tak proč né vyrobený tool. Definujeme funkci, která bude čekat na 
 výkon effectFunkce.
 ```typescript jsx
@@ -217,46 +199,47 @@ A použití pak bude vypadat následovně.
 ```typescript jsx
 it("change callback", async () => {
 
-        const cb = jasmine.createSpy("callback");
-        const tunel = prepareIntervalOnSteroid(cb, 12);
+    const cb = jasmine.createSpy("callback");
+    const tunel = prepareIntervalOnSteroid(cb, 12);
 
-        clock.tick(11);
-        const cb1 = jasmine.createSpy("callback");
-        tunel.changeDependencies(cb1, 12);
-        await afterEffect();
-        
-        clock.tick(2);
-        expect(cb).not.toHaveBeenCalled();
-        expect(cb1).toHaveBeenCalled();
-    });
+    clock.tick(11);
+    const cb1 = jasmine.createSpy("callback");
+    tunel.changeDependencies(cb1, 12);
+    await afterEffect();
+    
+    clock.tick(2);
+    expect(cb).not.toHaveBeenCalled();
+    expect(cb1).toHaveBeenCalled();
+});
 ```
-S tím jak je hook napsaný je potřeba před expecty ještě počkat na to, až budou dokončené naschedulované effect funkce
-. Jenže test pořád neprochází. Odpověď na to proč nalezneme v rozílu mezi prvním a druhým testovaným hookem. Zatímco 
-první hook používal useState hook a měnění stavové hodnoty zapříčiňovalo invalidate. U druhého hooku nic takového 
-nemáme. Kromě syncUpdatu tady budeme potřebovat volat ještě invalidate. Zavedem proto pomocnou funkci.
+Hook je napsaný tak že registraci intervalu provádí v effect hooku. To znamená, že na provedení effect hooku musíme 
+ještě počkat. Jenže test pořád neprochází. Odpověď na to proč, nalezneme v rozílu mezi prvním a druhým testovaným hookem. Zatímco 
+první hook používal useState hook a změna stavové hodnoty zapříčiňovala volání invalidate. U druhého hooku nic takového 
+nemáme. To znamená, že po změně dependencí využijeme volání rerender funkce. V podstatě tímto simulujeme to co se 
+bude dít v aplikaci. V té se o změnu dependencí bude starat interakce komponenty s prostředím. Tu ale v rámci unitu 
+zanedbáváme a simulujeme skrze právě vystavenou changeDependencies funkci a zavolání o rerender.
 
-A tu provoláme namísto pouze volání o syncUpdate z changeDependencies funkce. 
 ```typescript jsx
 changeDependencies(callback, time) {
-            cb = callback;
-            tm = time;
-            rerender();
-        }
+    cb = callback;
+    tm = time;
+    rerender();
+}
 ```
 Druhý test na změnu timeru bude vypadat následovně.
 ```typescript jsx
 it("change timer", async () => {
-        const cb = jasmine.createSpy("callback");
-        const tunel = prepareIntervalOnSteroid(cb, 12);
-
-        clock.tick(11);
-        tunel.changeDependencies(cb, 10);
-        await afterEffect();
-        clock.tick(2);
-        expect(cb).not.toHaveBeenCalled();
-        clock.tick(11);
-        expect(cb).toHaveBeenCalled();
-    });
+    const cb = jasmine.createSpy("callback");
+    const tunel = prepareIntervalOnSteroid(cb, 12);
+    await afterEffect();
+    clock.tick(11);
+    tunel.changeDependencies(cb, 10);
+    await afterEffect();
+    clock.tick(2);
+    expect(cb).not.toHaveBeenCalled();
+    clock.tick(11);
+    expect(cb).toHaveBeenCalled();
+});
 ```
 
 ## Návrh generického toolingu
@@ -400,6 +383,77 @@ describe("domMeter", () => {
     afterEach(() => clean());
 });
 ```
-Řešili by jste něco jinak? Něco není jasné? Neváhejte se ozvat.
+## A co kontext? (neboli cfg, ahoj Sváťo :) )
+Když jsem říkal, že interakci s prostředím komponenty můžeme zanedbat, tak to nebyla úplně tak pravda. Protože 
+existuje kontext. Což je hodnota braná právě z prostředí.
+```typescript jsx
+export const ThemeContext = b.createContext({
+    color: "init color"
+});
+
+export function useThemeConsumer() {
+    return b.useContext(ThemeContext);
+}
+```
+Pro případ interakce s kontextem je nutné upravit renderHook funkci tak aby počítala i s tím, že testovací komponenta
+ bude renderovaná v nějakém parentovi. Úprava na úrovni této funkce by ale zesložitila její použití. Takže cestou 
+ rozšíření interfacu
+ ```typescript jsx
+export function renderHook<T, P extends any[]>(hook: (...args: P) => T, ...dependencies: P): IHookRender<T, P> {
+    return renderHookInsideParent(hook, null, ...dependencies);
+}
+
+export function renderHookInsideParent<T, P extends any[]>(hook: (...args: P) => T, Parent: b.IComponentFactory<any> | null,  ...dependencies: P) {
+    let currentValue: T = {} as T;
+    let deps = dependencies;
+    let cacheNode: {current: b.IBobrilCacheNode} = {current: null};
+    let domNode: HTMLDivElement;
+    function Component() {
+        Object.assign(currentValue, hook(...deps));
+        return <div ref={cacheNode}>test</div>
+    }
+
+    b.init(() => {
+        return Parent ? <Parent><Component/></Parent> : <Component/>;
+    });
+    b.syncUpdate();
+    domNode = b.getDomNode(cacheNode.current) as HTMLDivElement;
+
+    return {
+        currentValue,
+        element: domNode,
+        bobrilNode: cacheNode,
+        changeDependencies(...dependencies: P) {
+            deps = dependencies;
+            rerender();
+        }
+    }
+}
+```
+A samotné testy:
+```typescript jsx
+describe("with context", () => {
+    it("use theme without provider", () => {
+        const container = renderHook(useThemeConsumer);
+
+        expect(container.currentValue.color).toBe("init color");
+    });
+
+    it("use theme with provider", () => {
+        function Provider({children}: {children: b.IBobrilNode}) {
+            b.useProvideContext(ThemeContext, {
+                color: "blue"
+            });
+            return <>{children}</>;
+        }
+
+        const container = renderHookInsideParent(useThemeConsumer, Provider);
+        expect(container.currentValue.color).toBe("blue");
+    });
+});
+```
+V podstatě v tomto případě testujeme jen to, že bobril funguje tak jak má. Nicméně je to přeci jen example :)
+Řešili by jste něco jinak? Něco není jasné? Nějaký zajímavý hook, se kterým by si tento tooling neporadil? Neváhejte se 
+ozvat. CYA guys
 
 PS.: hack [repo](https://github.com/krewi1/bobril-examples)
