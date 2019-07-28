@@ -1,10 +1,10 @@
 # Testování hooků.
 Když se člověk podívá na hook funkci a přemýšlí o jejím testování, tak se na první pohled zdá všechno růžové. Vždyť 
-přeci máme funkci, která vrací hodnoty. Takže jí prostě jen zavoláme a návratové hodnoty otestujeme. Po prvním 
-takovémhle pokusu, ale dostaneme vyhubováno s hláškou: **Hooks could be used only in Render method**.
+přeci máme funkci, která vrací hodnoty, takže jí prostě jen zavoláme a návratové hodnoty otestujeme. Po prvním 
+takovémhle pokusu dostaneme vyhubováno s hláškou: **Hooks could be used only in Render method**.
 
 ## Vysvětlení
-Tato hláška vycházi z podstaty hooků. Neboť ty jsou vázány na komponentu, její životí cycklus a její stav v podobě 
+Tato hláška vycházi z podstaty hooků. Ty jsou totiž vázány na komponentu, její životí cycklus a její stav v podobě 
 ctx, což je místo, kde hooky žijí.
 
 ## Example hook
@@ -61,7 +61,8 @@ it("naive increment", () => {
 ```
 Funkce se zavolala. Stav se změnil. Došlo k zavolání invalidatu. Nicméně hodnota poskytovaná counterem stále není 
 aktuální, neboť nedošlo k překreslení komponenty. To je naplánováno do budoucna, ale mi ho potřebujeme hned. Bobrilu 
-je tedy nutné znovu řící o render
+je tedy nutné znovu řící o render.
+je tedy nutné znovu řící o render.
 
 ```typescript jsx
     it("naive increment", () => {
@@ -160,10 +161,10 @@ describe("useInterval prepare", () => {
 });
 
 ```
- Další z věcí co zbývá dořešit je posun na časové ose. O to se nám postárá jasmine se svýma helper funkceme které 
+ Další z věcí, co zbývá dořešit je posun na časové ose. O to se nám postárá jasmine se svými helper funkcemi, které 
  jsou k dostání po zavolání jasmine.Clock funkce viz: [documentace](https://jasmine.github.io/api/3.4/Clock.html). 
- Vyřešil se jeden problém a vyskočil na nás další. UseEffect funkce totiž není synchronní. Je vykonávána jakmile to 
- bude možné. V bobrilu na toto existuje pomocná funkce asap. Budeme tedy potřebovat tool který dokáže říct zda se již zavolal effekt uvnitř 
+ Vyřešil se jeden problém a vyskočil na nás další. UseEffect funkce totiž není synchronní, je vykonávána jakmile to 
+ bude možné. V bobrilu na toto existuje pomocná funkce asap. Budeme tedy potřebovat tool, který dokáže říci, zda se již byl zavolán effekt uvnitř 
 komponenty. Effekt funkce využívá asap funkci. Tak proč né vyrobený tool. Definujeme funkci, která bude čekat na 
 výkon effectFunkce.
 ```typescript jsx
@@ -173,8 +174,8 @@ function afterEffect() {
 ```
 S promisy se celý test stává asynchronní. Další s čím by tooling měl počítat je možnost v průběhu času měnit 
 závislosti hooku. V tomto případě změna callbacku, respektive timeru, aby jsme mohli zkontrolovat, že se hook
- chová korektně i za těchto případů. Do prepare funkce budeme tedy potřebovat udělat tunel s jehož pomocí se budou 
- injectovat nové závisloti. 
+ chová korektně i za těchto případů. Do prepare funkce budeme tedy potřebovat udělat tunel, s jehož pomocí se budou 
+ injectované nové závisloti. 
  
  ```typescript jsx
 function prepareIntervalOnSteroid(callback, time) {
@@ -212,10 +213,10 @@ it("change callback", async () => {
     expect(cb1).toHaveBeenCalled();
 });
 ```
-Hook je napsaný tak že registraci intervalu provádí v effect hooku. To znamená, že na provedení effect hooku musíme 
+Hook je napsaný tak, že registraci intervalu provádí v effect hooku. To znamená, že na provedení effect hooku musíme 
 ještě počkat. Jenže test pořád neprochází. Odpověď na to proč, nalezneme v rozílu mezi prvním a druhým testovaným hookem. Zatímco 
 první hook používal useState hook a změna stavové hodnoty zapříčiňovala volání invalidate. U druhého hooku nic takového 
-nemáme. To znamená, že po změně dependencí využijeme volání rerender funkce. V podstatě tímto simulujeme to co se 
+nemáme. To znamená, že po změně dependencí využijeme volání rerender funkce. V podstatě tímto simulujeme to, co se 
 bude dít v aplikaci. V té se o změnu dependencí bude starat interakce komponenty s prostředím. Tu ale v rámci unitu 
 zanedbáváme a simulujeme skrze právě vystavenou changeDependencies funkci a zavolání o rerender.
 
@@ -243,7 +244,7 @@ it("change timer", async () => {
 ```
 
 ## Návrh generického toolingu
-Teď když víme jak se věci mají a fungují nemělo by nic bránit tomu napsat generickou render funkci s možností měnit 
+Teď když víme jak se věci mají a fungují, nemělo by nic bránit tomu napsat generickou render funkci s možností měnit 
 dependence.
 ```typescript jsx
 interface IHookRender<T, P extends any[]> {
@@ -283,7 +284,7 @@ function renderHook<T, P extends any[]>(hook: (...args: P) => T, ...dependencies
     }
 }
 ```
-Dle signatury funkce jako první parametr chodí hook který chceme testovat. Parametry hooku definujeme jako generický 
+Dle signatury funkce jako první parametr chodí hook, který chceme testovat. Parametry hooku definujeme jako generický 
 typ P a návratová hodnota je generické T. A refactoring testovaných hooku a přidaný další typ hooku, který pracuje s 
 dom elementem pak vypadá následovně.
 ```typescript jsx
@@ -384,8 +385,8 @@ describe("domMeter", () => {
 });
 ```
 ## A co kontext? (neboli cfg, ahoj Sváťo :) )
-Když jsem říkal, že interakci s prostředím komponenty můžeme zanedbat, tak to nebyla úplně tak pravda. Protože 
-existuje kontext. Což je hodnota braná právě z prostředí.
+Když jsem říkal, že interakci s okolím komponenty můžeme zanedbat, tak to nebyla úplně tak pravda. Protože 
+existuje kontext, což je hodnota braná právě z okolí.
 ```typescript jsx
 export const ThemeContext = b.createContext({
     color: "init color"
@@ -395,9 +396,8 @@ export function useThemeConsumer() {
     return b.useContext(ThemeContext);
 }
 ```
-Pro případ interakce s kontextem je nutné upravit renderHook funkci tak aby počítala i s tím, že testovací komponenta
- bude renderovaná v nějakém parentovi. Úprava na úrovni této funkce by ale zesložitila její použití. Takže cestou 
- rozšíření interfacu
+Pro případ interakce s kontextem je nutné upravit renderHook funkci tak, aby počítala i s tím, že testovací komponenta
+ bude renderovaná v nějakém parentovi. Úprava na úrovni render funkce by ale zesložitila její použití. Takže vystavuji další iface metodu k tomuto účelu.
  ```typescript jsx
 export function renderHook<T, P extends any[]>(hook: (...args: P) => T, ...dependencies: P): IHookRender<T, P> {
     return renderHookInsideParent(hook, null, ...dependencies);
@@ -453,7 +453,7 @@ describe("with context", () => {
 });
 ```
 V podstatě v tomto případě testujeme jen to, že bobril funguje tak jak má. Nicméně je to přeci jen example :)
-Řešili by jste něco jinak? Něco není jasné? Nějaký zajímavý hook, se kterým by si tento tooling neporadil? Neváhejte se 
+Řešili byste něco jinak? Něco není jasné? Nějaký zajímavý hook, se kterým by si tento tooling neporadil? Neváhejte se 
 ozvat. CYA guys
 
 PS.: hack [repo](https://github.com/krewi1/bobril-hook-testing)
