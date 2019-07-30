@@ -456,4 +456,20 @@ V podstatě v tomto případě testujeme jen to, že bobril funguje tak jak má.
 Řešili byste něco jinak? Něco není jasné? Nějaký zajímavý hook, se kterým by si tento tooling neporadil? Neváhejte se 
 ozvat. CYA guys
 
+```typescript jsx
+ it("change time", () => {
+        const spy = jasmine.createSpy("testFunction");
+        const container = renderHook(useInterval, spy, 500);
+        clock.tick(499);
+        expect(spy).not.toHaveBeenCalled();
+        container.changeDependencies(spy, 300);
+
+        clock.tick(200);
+        expect(spy).not.toHaveBeenCalled();
+
+        clock.tick(101);
+        expect(spy).toHaveBeenCalledTimes(1);
+    });
+```
+
 PS.: hack [repo](https://github.com/krewi1/bobril-hook-testing)
