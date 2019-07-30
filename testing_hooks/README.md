@@ -456,6 +456,9 @@ V podstatě v tomto případě testujeme jen to, že bobril funguje tak jak má.
 Řešili byste něco jinak? Něco není jasné? Nějaký zajímavý hook, se kterým by si tento tooling neporadil? Neváhejte se 
 ozvat. CYA guys
 
+// EDIT:
+po úpravách v bobril verzi 11.7.0 je prováděn useEffect po zavolání syncUpdatu synchronně. Tudíž ze všech 
+asynchronních testů můžeme odstranit volání afterEffect a async notaci.
 ```typescript jsx
  it("change time", () => {
         const spy = jasmine.createSpy("testFunction");
