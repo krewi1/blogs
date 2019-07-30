@@ -172,6 +172,12 @@ function afterEffect() {
      return new Promise(resolve => b.asap(resolve))
  }
 ```
+---
+**EDIT:**
+po úpravách v bobril verzi 11.7.0 je prováděn useEffect po zavolání syncUpdatu synchronně. Takže afterEffect už 
+nebude potřeba.
+---
+
 S promisy se celý test stává asynchronní. Další s čím by tooling měl počítat je možnost v průběhu času měnit 
 závislosti hooku. V tomto případě změna callbacku, respektive timeru, aby jsme mohli zkontrolovat, že se hook
  chová korektně i za těchto případů. Do prepare funkce budeme tedy potřebovat udělat tunel, s jehož pomocí se budou 
@@ -455,24 +461,5 @@ describe("with context", () => {
 V podstatě v tomto případě testujeme jen to, že bobril funguje tak jak má. Nicméně je to přeci jen example :)
 Řešili byste něco jinak? Něco není jasné? Nějaký zajímavý hook, se kterým by si tento tooling neporadil? Neváhejte se 
 ozvat. CYA guys
-
-// EDIT:
-po úpravách v bobril verzi 11.7.0 je prováděn useEffect po zavolání syncUpdatu synchronně. Tudíž ze všech 
-asynchronních testů můžeme odstranit volání afterEffect a async notaci.
-```typescript jsx
- it("change time", () => {
-        const spy = jasmine.createSpy("testFunction");
-        const container = renderHook(useInterval, spy, 500);
-        clock.tick(499);
-        expect(spy).not.toHaveBeenCalled();
-        container.changeDependencies(spy, 300);
-
-        clock.tick(200);
-        expect(spy).not.toHaveBeenCalled();
-
-        clock.tick(101);
-        expect(spy).toHaveBeenCalledTimes(1);
-    });
-```
 
 PS.: hack [repo](https://github.com/krewi1/bobril-hook-testing)
