@@ -1,4 +1,4 @@
-# Typed functional programming
+# Typed functional programming meetup summary
 ## fp-ts
 [Documentation](https://gcanti.github.io/fp-ts)
 
